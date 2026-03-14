@@ -12,38 +12,48 @@ public:
     DroneBridge()
     : Node("drone_bridge")
     {
-      sockfd_ = socket(AF_INET, SOCK_DGRAM, 0);
-      if (sockfd_ < 0)
-      {
-          perror("socket creation failed");
-          exit(EXIT_FAILURE);
-      }
+        sockfd_ = socket(AF_INET, SOCK_DGRAM, 0);
+        if (sockfd_ < 0)
+        {
+        perror("socket creation failed");
+        exit(EXIT_FAILURE);
+        }
 
-      memset(&servaddr_, 0, sizeof(servaddr_));
-      memset(&cliaddr_, 0, sizeof(cliaddr_));
+        memset(&servaddr_, 0, sizeof(servaddr_));
+        memset(&cliaddr_, 0, sizeof(cliaddr_));
 
-      servaddr_.sin_family = AF_INET;
-      servaddr_.sin_addr.s_addr = INADDR_ANY;
-      servaddr_.sin_port = htons(5000);
+        servaddr_.sin_family = AF_INET;
+        servaddr_.sin_addr.s_addr = INADDR_ANY;
+        servaddr_.sin_port = htons(5000);
 
-      if (bind(sockfd_, (const struct sockaddr *)&servaddr_, sizeof(servaddr_)) < 0)
-      {
-          perror("bind failed");
-          exit(EXIT_FAILURE);
-      }
+        if (bind(sockfd_, (const struct sockaddr *)&servaddr_, sizeof(servaddr_)) < 0)
+        {
+        perror("bind failed");
+        exit(EXIT_FAILURE);
+        }
 
-      RCLCPP_INFO(this->get_logger(), "UDP Image server started, waiting for client");
-      
-      recvfrom(sockfd_, NULL, 0,  
-              MSG_WAITALL, ( struct sockaddr *) &cliaddr_, 
-              &len_); 
+        RCLCPP_INFO(this->get_logger(), "UDP Image server started, waiting for client");
 
-      subscription_ = this->create_subscription<sensor_msgs::msg::CompressedImage>(
-          "/image_raw/compressed",
-          10,
-          std::bind(&DroneBridge::topic_callback, this, std::placeholders::_1));
+        char buffer[1];
+        len_ = sizeof(cliaddr_);
 
-      RCLCPP_INFO(this->get_logger(), "Client connected");
+        recvfrom(sockfd_, buffer, sizeof(buffer),
+                MSG_WAITALL,
+                (struct sockaddr *)&cliaddr_,
+                &len_);
+
+        char client_ip[INET_ADDRSTRLEN];
+        inet_ntop(AF_INET, &(cliaddr_.sin_addr), client_ip, INET_ADDRSTRLEN);
+
+        RCLCPP_INFO(this->get_logger(), "Client connected: %s:%d",
+                    client_ip, ntohs(cliaddr_.sin_port));
+
+        subscription_ = this->create_subscription<sensor_msgs::msg::CompressedImage>(
+        "/image_raw/compressed",
+        10,
+        std::bind(&DroneBridge::topic_callback, this, std::placeholders::_1));
+
+        RCLCPP_INFO(this->get_logger(), "Start subscription");
     }
 
 private:
