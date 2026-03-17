@@ -15,12 +15,14 @@ find_package(tf2 REQUIRED)
 include_directories(include)
 
 add_executable(lrs_mission_node
+  src/main.cpp
+  src/mavros_interface.cpp
+  src/mission_executor.cpp
+  src/mission_loader.cpp
 )
-
 ament_target_dependencies(lrs_mission_node
   rclcpp
   geometry_msgs
-  visualization_msgs
   mavros_msgs
   tf2
 )
