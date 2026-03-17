@@ -26,6 +26,10 @@ cd /home/lrs/TP-zdielane-supervizne-riadenie
 ```bash
 source /usr/share/gazebo/setup.sh
 source /opt/ros/humble/setup.bash
+export GAZEBO_MODEL_DATABASE_URI=""
+export GAZEBO_MODEL_PATH=/home/lrs/TP-zdielane-supervizne-riadenie/World_Dron/models:$GAZEBO_MODEL_PATH
+export GAZEBO_RESOURCE_PATH=/home/lrs/TP-zdielane-supervizne-riadenie/World_Dron/worlds:$GAZEBO_RESOURCE_PATH
+export GAZEBO_PLUGIN_PATH=/home/lrs/TP-zdielane-supervizne-riadenie/ardupilot_gazebo/build:$GAZEBO_PLUGIN_PATH
 gazebo --verbose /home/lrs/TP-zdielane-supervizne-riadenie/World_Dron/worlds/fei_lrs_gazebo_singleCamera.world
 ```
 
