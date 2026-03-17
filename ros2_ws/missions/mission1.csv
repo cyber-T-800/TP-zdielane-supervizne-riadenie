@@ -1,0 +1,6 @@
+# x y z tolerance command
+13.60 1.50 2.00 soft takeoff
+13.60 8.50 1.50 soft -
+6.20  9.91 1.30 hard landtakeoff
+6.20  5.20 1.00 hard yaw180
+13.60 1.50 1.00 soft land
