@@ -39,6 +39,12 @@ private:
   double hard_tol_{0.25};
   double rate_hz_{20.0};
 
+  // in mission_executor.hpp (inside class MissionExecutor)
+  double lt_hold_x_{0.0};
+  double lt_hold_y_{0.0};
+  bool lt_hold_xy_initialized_{false};
+  bool lt_reached_alt_{false};
+
   // mission state
   Phase phase_{Phase::WAIT_CONN};
   std::vector<MissionItem> mission_;

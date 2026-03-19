@@ -84,20 +84,22 @@ void MissionExecutor::start_item(const MissionItem& it)
   cmd_sent_ = false;
   yaw_initialized_ = false;
 
-  // reset landtakeoff state
   lt_phase_ = LTPhase::NONE;
   lt_takeoff_tries_ = 0;
   lt_last_action_ = now();
 
+  lt_hold_x_ = 0.0;
+  lt_hold_y_ = 0.0;
+  lt_hold_xy_initialized_ = false;
+  lt_reached_alt_ = false;
+
   sp_.header.frame_id = "map";
 
-  // keep current yaw
   if (mav_.have_pose()) {
     double cyaw = yaw_from_quat(mav_.current_pose().pose.orientation);
     sp_.pose.orientation = quat_from_yaw(cyaw);
   }
 
-  // normal setpoint target
   sp_.pose.position.x = it.x;
   sp_.pose.position.y = it.y;
   sp_.pose.position.z = it.z;
@@ -146,75 +148,115 @@ void MissionExecutor::step_item(const MissionItem& it)
   }
 
   if (cmd == "landtakeoff") {
-    // After landing autopilot goes to LAND and disarms -> set GUIDED + arm before takeoff.
-    if (lt_phase_ == LTPhase::NONE) {
-      lt_phase_ = LTPhase::LANDING;
+  if (lt_phase_ == LTPhase::SET_GUIDED || lt_phase_ == LTPhase::ARMING || lt_phase_ == LTPhase::TAKEOFFING) {
+    do_publish();
+  }
+
+  if (lt_phase_ == LTPhase::NONE) {
+  do_publish();
+
+  if (!reached(it.x, it.y, it.z, it.tol)) {
+    return;
+  }
+
+  lt_phase_ = LTPhase::LANDING;
+  lt_last_action_ = now();
+  RCLCPP_INFO(get_logger(), "Command: LANDTAKEOFF (landing phase at waypoint)");
+  mav_.land();
+  return;
+  }
+
+  if (lt_phase_ == LTPhase::LANDING) {
+    if (mav_.have_pose() && mav_.current_pose().pose.position.z < 0.20) {
+      lt_phase_ = LTPhase::SET_GUIDED;
+      lt_last_action_ = now() - rclcpp::Duration::from_seconds(2.0);
+      RCLCPP_INFO(get_logger(), "LANDTAKEOFF: On ground (z=%.2f) -> switching to GUIDED",
+                  mav_.current_pose().pose.position.z);
+    }
+    return;
+  }
+
+  if (lt_phase_ == LTPhase::SET_GUIDED) {
+    if ((now() - lt_last_action_).seconds() > 1.0) {
+      bool sent = mav_.set_mode("GUIDED");
+      RCLCPP_INFO(get_logger(), "LANDTAKEOFF: Request GUIDED (sent=%s), current=%s",
+                  sent ? "true" : "false", mav_.mode().c_str());
       lt_last_action_ = now();
-      RCLCPP_INFO(get_logger(), "Command: LANDTAKEOFF (landing phase)");
-      mav_.land();
-      return;
     }
 
-    if (lt_phase_ == LTPhase::LANDING) {
-      if (mav_.have_pose() && mav_.current_pose().pose.position.z < 0.20) {
-        lt_phase_ = LTPhase::SET_GUIDED;
-        lt_last_action_ = now() - rclcpp::Duration::from_seconds(2.0);
-        RCLCPP_INFO(get_logger(), "LANDTAKEOFF: On ground -> switching to GUIDED");
-      }
-      return;
+    if (mav_.mode() == "GUIDED") {
+      lt_phase_ = LTPhase::ARMING;
+      lt_last_action_ = now() - rclcpp::Duration::from_seconds(2.0);
+      RCLCPP_INFO(get_logger(), "LANDTAKEOFF: GUIDED confirmed -> arming (if needed)");
     }
+    return;
+  }
 
-    if (lt_phase_ == LTPhase::SET_GUIDED) {
-      if ((now() - lt_last_action_).seconds() > 1.0) {
-        bool sent = mav_.set_mode("GUIDED");
-        RCLCPP_INFO(get_logger(), "LANDTAKEOFF: Request GUIDED (sent=%s), current=%s",
-                    sent ? "true" : "false", mav_.mode().c_str());
-        lt_last_action_ = now();
-      }
-      if (mav_.mode() == "GUIDED") {
-        lt_phase_ = LTPhase::ARMING;
-        lt_last_action_ = now() - rclcpp::Duration::from_seconds(2.0);
-        RCLCPP_INFO(get_logger(), "LANDTAKEOFF: GUIDED confirmed -> arming");
-      }
-      return;
-    }
-
-    if (lt_phase_ == LTPhase::ARMING) {
+  if (lt_phase_ == LTPhase::ARMING) {
+    if (!mav_.armed()) {
       if ((now() - lt_last_action_).seconds() > 1.0) {
         bool sent = mav_.arm(true);
         RCLCPP_INFO(get_logger(), "LANDTAKEOFF: Request ARM (sent=%s), armed=%s",
                     sent ? "true" : "false", mav_.armed() ? "true" : "false");
         lt_last_action_ = now();
       }
-      if (mav_.armed()) {
-        lt_phase_ = LTPhase::TAKEOFFING;
-        lt_last_action_ = now() - rclcpp::Duration::from_seconds(2.0);
-        lt_takeoff_tries_ = 0;
-        RCLCPP_INFO(get_logger(), "LANDTAKEOFF: Armed -> takeoff to alt=%.2f", it.z);
-      }
       return;
     }
 
-    if (lt_phase_ == LTPhase::TAKEOFFING) {
-      if ((now() - lt_last_action_).seconds() > 1.0 && lt_takeoff_tries_ < 5) {
-        mav_.takeoff(it.z);
-        lt_takeoff_tries_++;
-        RCLCPP_INFO(get_logger(), "LANDTAKEOFF: TAKEOFF request %d/5 alt=%.2f",
-                    lt_takeoff_tries_, it.z);
-        lt_last_action_ = now();
-      }
-
-      if (mav_.have_pose() && mav_.current_pose().pose.position.z >= it.z - 0.15) {
-        RCLCPP_INFO(get_logger(), "LANDTAKEOFF completed -> continue mission");
-        idx_++;
-        if (idx_ < mission_.size()) start_item(mission_[idx_]);
-        else phase_ = Phase::DONE;
-      }
-      return;
-    }
-
-    return;
+  if (mav_.have_pose()) {
+    lt_hold_x_ = mav_.current_pose().pose.position.x;
+    lt_hold_y_ = mav_.current_pose().pose.position.y;
+    lt_hold_xy_initialized_ = true;
+  } else {
+    lt_hold_xy_initialized_ = false;
   }
+
+  lt_reached_alt_ = false;
+  lt_phase_ = LTPhase::TAKEOFFING;
+  lt_last_action_ = now(); 
+  RCLCPP_INFO(get_logger(), "LANDTAKEOFF: Armed -> takeoff by setpoint (hold XY) to alt=%.2f", it.z);
+
+  if (mav_.have_pose()) sp_.pose.orientation = mav_.current_pose().pose.orientation;
+
+  return;
+}
+
+if (lt_phase_ == LTPhase::TAKEOFFING) {
+  do_publish();
+
+  if (lt_hold_xy_initialized_) {
+    sp_.pose.position.x = lt_hold_x_;
+    sp_.pose.position.y = lt_hold_y_;
+  } else {
+    sp_.pose.position.x = it.x;
+    sp_.pose.position.y = it.y;
+  }
+
+  sp_.pose.position.z = it.z;
+
+  if (!lt_reached_alt_ && mav_.have_pose() && mav_.current_pose().pose.position.z >= it.z - 0.15) {
+    lt_reached_alt_ = true;
+    lt_last_action_ = now(); 
+    RCLCPP_INFO(get_logger(), "LANDTAKEOFF: Altitude reached (z=%.2f). Stabilizing...",
+                mav_.current_pose().pose.position.z);
+  }
+
+  if (lt_reached_alt_ && (now() - lt_last_action_).seconds() >= 1.0) {
+    RCLCPP_INFO(get_logger(), "LANDTAKEOFF completed -> continue mission");
+
+    lt_phase_ = LTPhase::NONE;
+    lt_takeoff_tries_ = 0;
+    yaw_initialized_ = false;
+    lt_hold_xy_initialized_ = false;
+
+    idx_++;
+    if (idx_ < mission_.size()) start_item(mission_[idx_]);
+    else phase_ = Phase::DONE;
+  }
+  return;
+}
+  return;
+}
 
   if (cmd == "yaw180") {
     do_publish();
@@ -234,18 +276,18 @@ void MissionExecutor::step_item(const MissionItem& it)
     return;
   }
 
-  if (cmd == "yaw90") {
+  if (cmd == "yaw90" || cmd == "-yaw90") {
   do_publish();
 
   if (!yaw_initialized_ && mav_.have_pose()) {
     double cyaw = yaw_from_quat(mav_.current_pose().pose.orientation);
 
-    // rotate +90 degrees relative to current yaw
-    target_yaw_ = cyaw + M_PI_2;
+    const double sign = (cmd == "-yaw90") ? -1.0 : 1.0;
+    target_yaw_ = cyaw + sign * (M_PI / 2.0);
 
     sp_.pose.orientation = quat_from_yaw(target_yaw_);
     yaw_initialized_ = true;
-    RCLCPP_INFO(get_logger(), "Command: YAW90");
+    RCLCPP_INFO(get_logger(), "Command: %s", cmd.c_str());
   }
 
   if (reached(it.x, it.y, it.z, it.tol)) {
@@ -257,7 +299,6 @@ void MissionExecutor::step_item(const MissionItem& it)
   return;
 }
 
-  // unknown -> waypoint
   do_publish();
   if (reached(it.x, it.y, it.z, it.tol)) {
     idx_++;
