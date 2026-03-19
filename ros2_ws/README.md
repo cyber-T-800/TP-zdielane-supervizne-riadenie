@@ -12,8 +12,8 @@ cd ardupilot/ArduCopter
 sim_vehicle.py -f gazebo-iris --console -l 48.15084570555732,17.072729745416016,150,0
 ```
 ***NOTE:** Wait until you see these messages:*
-- `EKF3 IMU0 is using GPS`
-- `EKF3 IMU1 is using GPS`
+- `EKF3 IMU0 origin set`
+- `EKF3 IMU1 origin set`
 ### 3. Launch MAVROS (Terminal 3)
 ```
 ros2 run mavros mavros_node --ros-args -p fcu_url:=udp://127.0.0.1:14551@14555
