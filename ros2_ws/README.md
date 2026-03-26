@@ -32,6 +32,10 @@ source install/setup.bash
 ```
 ros2 run lrs_mission lrs_mission_node
 ```
+### 6. Stop request
+```
+ros2 topic pub --once /stop std_msgs/msg/Bool "{data: true}"
+```
 ## Links 
 https://github.com/KocurMaros/LRS-FEI/
 
