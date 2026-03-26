@@ -7,6 +7,8 @@
 
 #include "lrs_mission/mission_types.hpp"
 #include "lrs_mission/mavros_interface.hpp"
+#include <std_msgs/msg/bool.hpp>
+
 
 namespace lrs_mission
 {
@@ -39,7 +41,17 @@ private:
   double hard_tol_{0.25};
   double rate_hz_{20.0};
 
-  // in mission_executor.hpp (inside class MissionExecutor)
+  // stop/loop control
+  bool stop_requested_{false};     // user requested stop
+  bool land_at_loop_end_{false};   // finish current loop then land
+  bool landing_active_{false};     // we already commanded land
+
+  rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr stop_sub_;
+  void stop_cb(const std_msgs::msg::Bool::SharedPtr msg);
+  
+  
+  void advance_after_item();
+
   double lt_hold_x_{0.0};
   double lt_hold_y_{0.0};
   bool lt_hold_xy_initialized_{false};

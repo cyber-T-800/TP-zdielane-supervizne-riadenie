@@ -4,6 +4,8 @@
 #include <cmath>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2/LinearMath/Matrix3x3.h>
+#include <std_msgs/msg/bool.hpp>
+
 
 using namespace std::chrono_literals;
 
@@ -24,8 +26,9 @@ MissionExecutor::MissionExecutor()
   rate_hz_ = this->get_parameter("rate_hz").as_double();
 
   if (mission_path_.empty()) {
-  mission_path_ = std::string(getenv("HOME")) + "/TP-zdielane-supervizne-riadenie/ros2_ws/missions/hangar_mavros_pos.csv";
-}
+    mission_path_ = std::string(getenv("HOME")) +
+      "/TP-zdielane-supervizne-riadenie/ros2_ws/missions/hangar_mavros_pos.csv";
+  }
 
   mission_ = MissionLoader::load_from_file(mission_path_);
 
@@ -37,6 +40,18 @@ MissionExecutor::MissionExecutor()
                 it.tol == ToleranceType::SOFT ? "soft" : "hard",
                 it.command.c_str());
   }
+
+  stop_sub_ = this->create_subscription<std_msgs::msg::Bool>(
+  "stop",
+  10,
+  [this](const std_msgs::msg::Bool::SharedPtr msg) {
+    if (!msg->data) return;
+    stop_requested_ = true;
+    land_at_loop_end_ = true;
+    landing_active_ = false;
+    RCLCPP_WARN(this->get_logger(), "STOP requested -> will LAND after finishing current loop");
+  }
+);
 
   sp_.header.frame_id = "map";
   lt_last_action_ = now();
@@ -84,10 +99,12 @@ void MissionExecutor::start_item(const MissionItem& it)
   cmd_sent_ = false;
   yaw_initialized_ = false;
 
+  // reset landtakeoff state
   lt_phase_ = LTPhase::NONE;
   lt_takeoff_tries_ = 0;
   lt_last_action_ = now();
 
+  // landtakeoff helper resets
   lt_hold_x_ = 0.0;
   lt_hold_y_ = 0.0;
   lt_hold_xy_initialized_ = false;
@@ -95,14 +112,43 @@ void MissionExecutor::start_item(const MissionItem& it)
 
   sp_.header.frame_id = "map";
 
+  // keep current yaw
   if (mav_.have_pose()) {
     double cyaw = yaw_from_quat(mav_.current_pose().pose.orientation);
     sp_.pose.orientation = quat_from_yaw(cyaw);
   }
 
+  // normal setpoint target
   sp_.pose.position.x = it.x;
   sp_.pose.position.y = it.y;
   sp_.pose.position.z = it.z;
+}
+
+// Advance to next mission item, or loop, or land-after-loop if stop was requested
+void MissionExecutor::advance_after_item()
+{
+  idx_++;
+
+  if (idx_ < mission_.size()) {
+    start_item(mission_[idx_]);
+    return;
+  }
+
+  // End of loop reached
+  if (land_at_loop_end_) {
+    if (!landing_active_) {
+      RCLCPP_WARN(get_logger(), "End of loop reached -> LANDING now (stop requested)");
+      mav_.land();
+      landing_active_ = true;
+    }
+    phase_ = Phase::DONE;  // DONE will keep calling land until z<0.2
+    return;
+  }
+
+  // Loop forever
+  idx_ = 0;
+  RCLCPP_INFO(get_logger(), "Loop restart");
+  start_item(mission_[idx_]);
 }
 
 void MissionExecutor::step_item(const MissionItem& it)
@@ -114,9 +160,7 @@ void MissionExecutor::step_item(const MissionItem& it)
     do_publish();
     if (reached(it.x, it.y, it.z, it.tol)) {
       RCLCPP_INFO(get_logger(), "Reached waypoint %zu", idx_);
-      idx_++;
-      if (idx_ < mission_.size()) start_item(mission_[idx_]);
-      else phase_ = Phase::DONE;
+      advance_after_item();
     }
     return;
   }
@@ -128,9 +172,7 @@ void MissionExecutor::step_item(const MissionItem& it)
     }
     if (mav_.have_pose() && mav_.current_pose().pose.position.z >= it.z - 0.15) {
       RCLCPP_INFO(get_logger(), "Takeoff altitude reached, continue");
-      idx_++;
-      if (idx_ < mission_.size()) start_item(mission_[idx_]);
-      else phase_ = Phase::DONE;
+      advance_after_item();
     }
     return;
   }
@@ -141,122 +183,131 @@ void MissionExecutor::step_item(const MissionItem& it)
       cmd_sent_ = mav_.land();
     }
     if (mav_.have_pose() && mav_.current_pose().pose.position.z < 0.20) {
-      RCLCPP_INFO(get_logger(), "Landed, mission done");
-      phase_ = Phase::DONE;
+      RCLCPP_INFO(get_logger(), "Landed");
+      // If we're looping and user did NOT request stop, continue loop.
+      // If stop was requested, DONE phase will keep it landed.
+      if (land_at_loop_end_) {
+        phase_ = Phase::DONE;
+      } else {
+        advance_after_item();
+      }
     }
     return;
   }
 
   if (cmd == "landtakeoff") {
-  if (lt_phase_ == LTPhase::SET_GUIDED || lt_phase_ == LTPhase::ARMING || lt_phase_ == LTPhase::TAKEOFFING) {
-    do_publish();
-  }
+    // IMPORTANT: start landing only after we reached the landtakeoff waypoint
+    // Otherwise landing happens at the previous point and the next waypoint can be unsafe.
+    if (lt_phase_ == LTPhase::NONE) {
+      do_publish(); // keep flying to (it.x,it.y,it.z)
+      if (!reached(it.x, it.y, it.z, it.tol)) {
+        return; // still approaching
+      }
 
-  if (lt_phase_ == LTPhase::NONE) {
-  do_publish();
-
-  if (!reached(it.x, it.y, it.z, it.tol)) {
-    return;
-  }
-
-  lt_phase_ = LTPhase::LANDING;
-  lt_last_action_ = now();
-  RCLCPP_INFO(get_logger(), "Command: LANDTAKEOFF (landing phase at waypoint)");
-  mav_.land();
-  return;
-  }
-
-  if (lt_phase_ == LTPhase::LANDING) {
-    if (mav_.have_pose() && mav_.current_pose().pose.position.z < 0.20) {
-      lt_phase_ = LTPhase::SET_GUIDED;
-      lt_last_action_ = now() - rclcpp::Duration::from_seconds(2.0);
-      RCLCPP_INFO(get_logger(), "LANDTAKEOFF: On ground (z=%.2f) -> switching to GUIDED",
-                  mav_.current_pose().pose.position.z);
-    }
-    return;
-  }
-
-  if (lt_phase_ == LTPhase::SET_GUIDED) {
-    if ((now() - lt_last_action_).seconds() > 1.0) {
-      bool sent = mav_.set_mode("GUIDED");
-      RCLCPP_INFO(get_logger(), "LANDTAKEOFF: Request GUIDED (sent=%s), current=%s",
-                  sent ? "true" : "false", mav_.mode().c_str());
+      lt_phase_ = LTPhase::LANDING;
       lt_last_action_ = now();
+      RCLCPP_INFO(get_logger(), "Command: LANDTAKEOFF (landing phase at waypoint)");
+      mav_.land();
+      return;
     }
 
-    if (mav_.mode() == "GUIDED") {
-      lt_phase_ = LTPhase::ARMING;
-      lt_last_action_ = now() - rclcpp::Duration::from_seconds(2.0);
-      RCLCPP_INFO(get_logger(), "LANDTAKEOFF: GUIDED confirmed -> arming (if needed)");
+    // Keep streaming setpoints during phases where GUIDED control is needed.
+    if (lt_phase_ == LTPhase::SET_GUIDED || lt_phase_ == LTPhase::ARMING || lt_phase_ == LTPhase::TAKEOFFING) {
+      do_publish();
     }
-    return;
-  }
 
-  if (lt_phase_ == LTPhase::ARMING) {
-    if (!mav_.armed()) {
-      if ((now() - lt_last_action_).seconds() > 1.0) {
-        bool sent = mav_.arm(true);
-        RCLCPP_INFO(get_logger(), "LANDTAKEOFF: Request ARM (sent=%s), armed=%s",
-                    sent ? "true" : "false", mav_.armed() ? "true" : "false");
-        lt_last_action_ = now();
+    // 1) Wait until on ground (do NOT require disarm)
+    if (lt_phase_ == LTPhase::LANDING) {
+      if (mav_.have_pose() && mav_.current_pose().pose.position.z < 0.20) {
+        lt_phase_ = LTPhase::SET_GUIDED;
+        lt_last_action_ = now() - rclcpp::Duration::from_seconds(2.0);
+        RCLCPP_INFO(get_logger(), "LANDTAKEOFF: On ground (z=%.2f) -> switching to GUIDED",
+                    mav_.current_pose().pose.position.z);
       }
       return;
     }
 
-  if (mav_.have_pose()) {
-    lt_hold_x_ = mav_.current_pose().pose.position.x;
-    lt_hold_y_ = mav_.current_pose().pose.position.y;
-    lt_hold_xy_initialized_ = true;
-  } else {
-    lt_hold_xy_initialized_ = false;
+    // 2) Ensure GUIDED mode again
+    if (lt_phase_ == LTPhase::SET_GUIDED) {
+      if ((now() - lt_last_action_).seconds() > 1.0) {
+        bool sent = mav_.set_mode("GUIDED");
+        RCLCPP_INFO(get_logger(), "LANDTAKEOFF: Request GUIDED (sent=%s), current=%s",
+                    sent ? "true" : "false", mav_.mode().c_str());
+        lt_last_action_ = now();
+      }
+
+      if (mav_.mode() == "GUIDED") {
+        lt_phase_ = LTPhase::ARMING;
+        lt_last_action_ = now() - rclcpp::Duration::from_seconds(2.0);
+        RCLCPP_INFO(get_logger(), "LANDTAKEOFF: GUIDED confirmed -> arming (if needed)");
+      }
+      return;
+    }
+
+    // 3) Arm if needed (sometimes stays armed)
+    if (lt_phase_ == LTPhase::ARMING) {
+      if (!mav_.armed()) {
+        if ((now() - lt_last_action_).seconds() > 1.0) {
+          bool sent = mav_.arm(true);
+          RCLCPP_INFO(get_logger(), "LANDTAKEOFF: Request ARM (sent=%s), armed=%s",
+                      sent ? "true" : "false", mav_.armed() ? "true" : "false");
+          lt_last_action_ = now();
+        }
+        return;
+      }
+
+      // Hold XY at the CURRENT ground position (prevents ground-scrape dash)
+      if (mav_.have_pose()) {
+        lt_hold_x_ = mav_.current_pose().pose.position.x;
+        lt_hold_y_ = mav_.current_pose().pose.position.y;
+        lt_hold_xy_initialized_ = true;
+      } else {
+        lt_hold_xy_initialized_ = false;
+      }
+
+      lt_reached_alt_ = false;
+      lt_phase_ = LTPhase::TAKEOFFING;
+      lt_last_action_ = now(); // stabilization timer start
+      RCLCPP_INFO(get_logger(), "LANDTAKEOFF: Armed -> takeoff by setpoint (hold XY) to alt=%.2f", it.z);
+
+      if (mav_.have_pose()) sp_.pose.orientation = mav_.current_pose().pose.orientation;
+      return;
+    }
+
+    // 4) Takeoff by setpoint: hold XY, climb Z, then stabilize 1s, then continue mission
+    if (lt_phase_ == LTPhase::TAKEOFFING) {
+      do_publish();
+
+      // Hold XY where we landed until safely at altitude
+      if (lt_hold_xy_initialized_) {
+        sp_.pose.position.x = lt_hold_x_;
+        sp_.pose.position.y = lt_hold_y_;
+      } else {
+        sp_.pose.position.x = it.x;
+        sp_.pose.position.y = it.y;
+      }
+
+      sp_.pose.position.z = it.z;
+
+      if (!lt_reached_alt_ && mav_.have_pose() && mav_.current_pose().pose.position.z >= it.z - 0.15) {
+        lt_reached_alt_ = true;
+        lt_last_action_ = now(); // start stabilize timer
+        RCLCPP_INFO(get_logger(), "LANDTAKEOFF: Altitude reached (z=%.2f). Stabilizing...",
+                    mav_.current_pose().pose.position.z);
+      }
+
+      if (lt_reached_alt_ && (now() - lt_last_action_).seconds() >= 1.0) {
+        RCLCPP_INFO(get_logger(), "LANDTAKEOFF completed -> continue mission");
+        lt_phase_ = LTPhase::NONE;
+        lt_hold_xy_initialized_ = false;
+        lt_reached_alt_ = false;
+        advance_after_item();
+      }
+      return;
+    }
+
+    return;
   }
-
-  lt_reached_alt_ = false;
-  lt_phase_ = LTPhase::TAKEOFFING;
-  lt_last_action_ = now(); 
-  RCLCPP_INFO(get_logger(), "LANDTAKEOFF: Armed -> takeoff by setpoint (hold XY) to alt=%.2f", it.z);
-
-  if (mav_.have_pose()) sp_.pose.orientation = mav_.current_pose().pose.orientation;
-
-  return;
-}
-
-if (lt_phase_ == LTPhase::TAKEOFFING) {
-  do_publish();
-
-  if (lt_hold_xy_initialized_) {
-    sp_.pose.position.x = lt_hold_x_;
-    sp_.pose.position.y = lt_hold_y_;
-  } else {
-    sp_.pose.position.x = it.x;
-    sp_.pose.position.y = it.y;
-  }
-
-  sp_.pose.position.z = it.z;
-
-  if (!lt_reached_alt_ && mav_.have_pose() && mav_.current_pose().pose.position.z >= it.z - 0.15) {
-    lt_reached_alt_ = true;
-    lt_last_action_ = now(); 
-    RCLCPP_INFO(get_logger(), "LANDTAKEOFF: Altitude reached (z=%.2f). Stabilizing...",
-                mav_.current_pose().pose.position.z);
-  }
-
-  if (lt_reached_alt_ && (now() - lt_last_action_).seconds() >= 1.0) {
-    RCLCPP_INFO(get_logger(), "LANDTAKEOFF completed -> continue mission");
-
-    lt_phase_ = LTPhase::NONE;
-    lt_takeoff_tries_ = 0;
-    yaw_initialized_ = false;
-    lt_hold_xy_initialized_ = false;
-
-    idx_++;
-    if (idx_ < mission_.size()) start_item(mission_[idx_]);
-    else phase_ = Phase::DONE;
-  }
-  return;
-}
-  return;
-}
 
   if (cmd == "yaw180") {
     do_publish();
@@ -269,41 +320,34 @@ if (lt_phase_ == LTPhase::TAKEOFFING) {
     }
     if (reached(it.x, it.y, it.z, it.tol)) {
       RCLCPP_INFO(get_logger(), "Yaw180 point reached, continue");
-      idx_++;
-      if (idx_ < mission_.size()) start_item(mission_[idx_]);
-      else phase_ = Phase::DONE;
+      advance_after_item();
     }
     return;
   }
 
   if (cmd == "yaw90" || cmd == "-yaw90") {
-  do_publish();
+    do_publish();
 
-  if (!yaw_initialized_ && mav_.have_pose()) {
-    double cyaw = yaw_from_quat(mav_.current_pose().pose.orientation);
+    if (!yaw_initialized_ && mav_.have_pose()) {
+      double cyaw = yaw_from_quat(mav_.current_pose().pose.orientation);
+      const double sign = (cmd == "-yaw90") ? -1.0 : 1.0;
+      target_yaw_ = cyaw + sign * (M_PI / 2.0);
+      sp_.pose.orientation = quat_from_yaw(target_yaw_);
+      yaw_initialized_ = true;
+      RCLCPP_INFO(get_logger(), "Command: %s", cmd.c_str());
+    }
 
-    const double sign = (cmd == "-yaw90") ? -1.0 : 1.0;
-    target_yaw_ = cyaw + sign * (M_PI / 2.0);
-
-    sp_.pose.orientation = quat_from_yaw(target_yaw_);
-    yaw_initialized_ = true;
-    RCLCPP_INFO(get_logger(), "Command: %s", cmd.c_str());
+    if (reached(it.x, it.y, it.z, it.tol)) {
+      RCLCPP_INFO(get_logger(), "Yaw90 point reached, continue");
+      advance_after_item();
+    }
+    return;
   }
 
-  if (reached(it.x, it.y, it.z, it.tol)) {
-    RCLCPP_INFO(get_logger(), "Yaw90 point reached, continue");
-    idx_++;
-    if (idx_ < mission_.size()) start_item(mission_[idx_]);
-    else phase_ = Phase::DONE;
-  }
-  return;
-}
-
+  // unknown -> treat as waypoint
   do_publish();
   if (reached(it.x, it.y, it.z, it.tol)) {
-    idx_++;
-    if (idx_ < mission_.size()) start_item(mission_[idx_]);
-    else phase_ = Phase::DONE;
+    advance_after_item();
   }
 }
 
@@ -370,12 +414,36 @@ void MissionExecutor::tick()
       return;
 
     case Phase::EXECUTE:
-      if (idx_ >= mission_.size()) { phase_ = Phase::DONE; return; }
+      if (idx_ >= mission_.size()) {
+        // should not happen (advance_after_item handles loop), but keep safe
+        idx_ = 0;
+        start_item(mission_[idx_]);
+      }
       step_item(mission_[idx_]);
       return;
 
     case Phase::DONE:
       publish_hold_setpoint();
+
+      // If stop was requested, keep landing until on ground
+      if (land_at_loop_end_) {
+        if (!landing_active_) {
+          mav_.land();
+          landing_active_ = true;
+        }
+
+        if (mav_.have_pose() && mav_.current_pose().pose.position.z < 0.20) {
+          RCLCPP_INFO_THROTTLE(get_logger(), *get_clock(), 2000, "Landed. Mission stopped.");
+          // optional: uncomment to exit node after landing
+          // rclcpp::shutdown();
+        } else {
+          RCLCPP_INFO_THROTTLE(get_logger(), *get_clock(), 2000, "Landing...");
+          mav_.land();
+        }
+        return;
+      }
+
+      // Otherwise, we do not end (we loop forever). DONE should rarely be reached.
       RCLCPP_INFO_THROTTLE(get_logger(), *get_clock(), 2000, "Mission DONE");
       return;
 

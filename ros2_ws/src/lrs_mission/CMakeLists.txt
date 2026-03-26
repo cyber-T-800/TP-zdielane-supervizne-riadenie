@@ -11,6 +11,8 @@ find_package(geometry_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
 find_package(mavros_msgs REQUIRED)
 find_package(tf2 REQUIRED)
+find_package(std_msgs REQUIRED)
+
 
 include_directories(include)
 
@@ -25,6 +27,7 @@ ament_target_dependencies(lrs_mission_node
   geometry_msgs
   mavros_msgs
   tf2
+  std_msgs
 )
 
 install(TARGETS lrs_mission_node
