@@ -4,7 +4,8 @@ A short guide on how to launch simple automatic mission (Gazebo + ArduPilot SITL
 
 ### 1. Launch Gazebo world (Terminal 1)
 ```
-gazebo <path_to_world>/fei_lrs_gazebo.world
+gazebo <path_to_world>/fei_lrs_gazebo_singleCamera.world
+//gazebo /home/lrs/TP-zdielane-supervizne-riadenie/World_Dron/worlds/fei_lrs_gazebo_singleCamera.world
 ```
 ### 2. Launch ArduPilot SITL (Terminal 2)
 ```
