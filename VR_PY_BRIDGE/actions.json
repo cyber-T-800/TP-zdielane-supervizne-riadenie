@@ -1,0 +1,47 @@
+{
+  "action_sets": [
+    {
+      "name": "/actions/main",
+      "usage": "single"
+    }
+  ],
+  "actions": [
+    {
+      "name": "/actions/main/in/LeftStick",
+      "type": "vector2"
+    },
+    {
+      "name": "/actions/main/in/RightStick",
+      "type": "vector2"
+    },
+    {
+      "name": "/actions/main/in/LeftTrigger",
+      "type": "vector1"
+    },
+    {
+      "name": "/actions/main/in/RightTrigger",
+      "type": "vector1"
+    },
+    {
+      "name": "/actions/main/in/TestClick",
+      "type": "boolean"
+    }
+  ],
+  "default_bindings": [
+    {
+      "controller_type": "oculus_touch",
+      "binding_url": "bindings/bindings_generic.json"
+    }
+  ],
+  "localization": [
+    {
+      "language_tag": "en_us",
+      "/actions/main": "Main",
+      "/actions/main/in/LeftStick": "Left Stick",
+      "/actions/main/in/RightStick": "Right Stick",
+      "/actions/main/in/LeftTrigger": "Left Trigger",
+      "/actions/main/in/RightTrigger": "Right Trigger",
+      "/actions/main/in/TestClick": "Test Click"
+    }
+  ]
+}

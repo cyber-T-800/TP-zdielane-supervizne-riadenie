@@ -1,0 +1,205 @@
+PS C:\VR_PY_BRIDGE> .\.venv\Scripts\activate
+(.venv) PS C:\VR_PY_BRIDGE> python vr_bridge.py
+=== VR PY BRIDGE START ===
+Actions path: C:\VR_PY_BRIDGE\actions.json
+Exists: True
+APP_KEY: miro.vr_py_bridge
+OpenVR init OK
+identifyApplication result: None
+GetApplicationProcessId: 15404
+Current PID: 15404
+isInputFocusCapturedByAnotherProcess EXCEPTION: 'IVRSystem' object has no attribute 'isInputFocusCapturedByAnotherProcess'
+captureInputFocus EXCEPTION: 'IVRSystem' object has no attribute 'captureInputFocus'
+isInputFocusCapturedByAnotherProcess AFTER capture EXCEPTION: 'IVRSystem' object has no attribute 'isInputFocusCapturedByAnotherProcess'
+setActionManifestPath result: None
+
+=== HANDLES ===
+action_set   = 1152946638755463953
+left_stick   = 1152946638755463954
+right_stick  = 1152946638755463955
+left_trigger = 1152946638755463956
+right_trigger= 1152946638755463957
+test_click   = 1152946638755463958
+left_hand    = 2305868143362310153
+right_hand   = 2305868143362310154
+
+Move sticks / press triggers / A button. Ctrl+C to stop.
+
+=== VR INPUT TEST #1 ===
+Left Stick   active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Right Stick  active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Left Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Right Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Test Click   active=0 origin=0 state=0 changed=0
+
+=== VR INPUT TEST #2 ===
+Left Stick   active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Right Stick  active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Left Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Right Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Test Click   active=0 origin=0 state=0 changed=0
+
+=== VR INPUT TEST #3 ===
+Left Stick   active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Right Stick  active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Left Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Right Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Test Click   active=0 origin=0 state=0 changed=0
+
+=== VR INPUT TEST #4 ===
+Left Stick   active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Right Stick  active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Left Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Right Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Test Click   active=0 origin=0 state=0 changed=0
+
+=== VR INPUT TEST #5 ===
+Left Stick   active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Right Stick  active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Left Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Right Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Test Click   active=0 origin=0 state=0 changed=0
+
+=== VR INPUT TEST #6 ===
+Left Stick   active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Right Stick  active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Left Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Right Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Test Click   active=0 origin=0 state=0 changed=0
+
+=== VR INPUT TEST #7 ===
+Left Stick   active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Right Stick  active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Left Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Right Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Test Click   active=0 origin=0 state=0 changed=0
+
+=== VR INPUT TEST #8 ===
+Left Stick   active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Right Stick  active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Left Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Right Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Test Click   active=0 origin=0 state=0 changed=0
+
+=== VR INPUT TEST #9 ===
+Left Stick   active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Right Stick  active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Left Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Right Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Test Click   active=0 origin=0 state=0 changed=0
+
+=== VR INPUT TEST #10 ===
+Left Stick   active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Right Stick  active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Left Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Right Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Test Click   active=0 origin=0 state=0 changed=0
+DIAG mapped PID now: 15404
+DIAG focus check EXCEPTION: 'IVRSystem' object has no attribute 'isInputFocusCapturedByAnotherProcess'
+
+=== VR INPUT TEST #11 ===
+Left Stick   active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Right Stick  active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Left Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Right Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Test Click   active=0 origin=0 state=0 changed=0
+
+=== VR INPUT TEST #12 ===
+Left Stick   active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Right Stick  active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Left Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Right Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Test Click   active=0 origin=0 state=0 changed=0
+
+=== VR INPUT TEST #13 ===
+Left Stick   active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Right Stick  active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Left Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Right Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Test Click   active=0 origin=0 state=0 changed=0
+
+=== VR INPUT TEST #14 ===
+Left Stick   active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Right Stick  active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Left Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Right Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Test Click   active=0 origin=0 state=0 changed=0
+
+=== VR INPUT TEST #15 ===
+Left Stick   active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Right Stick  active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Left Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Right Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Test Click   active=0 origin=0 state=0 changed=0
+
+=== VR INPUT TEST #16 ===
+Left Stick   active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Right Stick  active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Left Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Right Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Test Click   active=0 origin=0 state=0 changed=0
+
+=== VR INPUT TEST #17 ===
+Left Stick   active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Right Stick  active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Left Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Right Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Test Click   active=0 origin=0 state=0 changed=0
+
+=== VR INPUT TEST #18 ===
+Left Stick   active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Right Stick  active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Left Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Right Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Test Click   active=0 origin=0 state=0 changed=0
+
+=== VR INPUT TEST #19 ===
+Left Stick   active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Right Stick  active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Left Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Right Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Test Click   active=0 origin=0 state=0 changed=0
+
+=== VR INPUT TEST #20 ===
+Left Stick   active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Right Stick  active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Left Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Right Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Test Click   active=0 origin=0 state=0 changed=0
+DIAG mapped PID now: 15404
+DIAG focus check EXCEPTION: 'IVRSystem' object has no attribute 'isInputFocusCapturedByAnotherProcess'
+
+=== VR INPUT TEST #21 ===
+Left Stick   active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Right Stick  active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Left Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Right Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Test Click   active=0 origin=0 state=0 changed=0
+
+=== VR INPUT TEST #22 ===
+Left Stick   active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Right Stick  active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Left Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Right Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Test Click   active=0 origin=0 state=0 changed=0
+
+=== VR INPUT TEST #23 ===
+Left Stick   active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Right Stick  active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Left Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Right Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Test Click   active=0 origin=0 state=0 changed=0
+
+=== VR INPUT TEST #24 ===
+Left Stick   active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Right Stick  active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Left Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Right Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Test Click   active=0 origin=0 state=0 changed=0
+
+=== VR INPUT TEST #25 ===
+Left Stick   active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Right Stick  active=0 origin=0 x=0.0000 y=0.0000 dx=0.0000 dy=0.0000
+Left Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Right Trigger active=0 origin=0 x=0.0000 dx=0.0000
+Test Click   active=0 origin=0 state=0 changed=0

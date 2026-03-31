@@ -1,0 +1,18 @@
+{
+  "source": "builtin",
+  "applications": [
+    {
+      "app_key": "miro.vr_py_bridge",
+      "launch_type": "binary",
+      "binary_path_windows": "C:\\VR_PY_BRIDGE\\.venv\\Scripts\\python.exe",
+      "arguments": "C:\\VR_PY_BRIDGE\\vr_bridge.py",
+      "is_dashboard_overlay": false,
+      "strings": {
+        "en_us": {
+          "name": "VR Python Bridge",
+          "description": "Python OpenVR input bridge"
+        }
+      }
+    }
+  ]
+}
