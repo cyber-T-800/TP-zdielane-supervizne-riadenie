@@ -45,6 +45,11 @@ struct DroneContext
   std::vector<MissionItem> mission;
   std::size_t mission_idx{0};
 
+  bool paused_for_collision{false};
+  std::size_t pause_partner{static_cast<std::size_t>(-1)};
+  bool mission_started{false};
+  bool collision_enabled{false};
+
   Phase phase{Phase::WAIT_CONN};
   LTPhase lt_phase{LTPhase::NONE};
 

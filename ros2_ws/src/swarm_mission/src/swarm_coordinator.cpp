@@ -31,6 +31,14 @@ SwarmCoordinator::SwarmCoordinator()
   this->declare_parameter<double>("hard_tol", hard_tol_);
   this->declare_parameter<double>("pose_timeout_sec", pose_timeout_sec_);
 
+  this->declare_parameter<double>("collision_stop_dist", collision_stop_dist_);
+  this->declare_parameter<double>("collision_resume_dist", collision_resume_dist_);
+  this->declare_parameter<bool>("cycle_missions", cycle_missions_);
+
+  collision_stop_dist_ = this->get_parameter("collision_stop_dist").as_double();
+  collision_resume_dist_ = this->get_parameter("collision_resume_dist").as_double();
+  cycle_missions_ = this->get_parameter("cycle_missions").as_bool();
+
   drone_names_ = this->get_parameter("drone_names").as_string_array();
   mission_paths_ = this->get_parameter("mission_paths").as_string_array();
   rate_hz_ = this->get_parameter("rate_hz").as_double();
@@ -81,6 +89,22 @@ double SwarmCoordinator::yaw_from_quat(const geometry_msgs::msg::Quaternion& q)
   return yaw;
 }
 
+double SwarmCoordinator::distance_between(const DroneContext& a, const DroneContext& b) const
+{
+  if (!a.mav->have_pose() || !b.mav->have_pose()) {
+    return 1e9;
+  }
+
+  const auto pa = a.mav->current_pose().pose.position;
+  const auto pb = b.mav->current_pose().pose.position;
+
+  const double dx = pa.x - pb.x;
+  const double dy = pa.y - pb.y;
+  const double dz = pa.z - pb.z;
+
+  return std::sqrt(dx * dx + dy * dy + dz * dz);
+}
+
 geometry_msgs::msg::Quaternion SwarmCoordinator::quat_from_yaw(double yaw)
 {
   tf2::Quaternion tq;
@@ -107,6 +131,67 @@ bool SwarmCoordinator::reached(
   const double thr = (tol == ToleranceType::SOFT) ? soft_tol_ : hard_tol_;
 
   return dist <= thr;
+}
+
+
+bool SwarmCoordinator::collision_check_enabled(const DroneContext& d) const
+{
+  using Phase = DroneContext::Phase;
+
+  if (!d.mav->have_pose()) return false;
+  if (d.phase != Phase::EXECUTE) return false;
+  if (d.mission_idx >= d.mission.size()) return false;
+
+  // safety zapneme az po takeoffe a po dosiahnuti prveho rozostupoveho bodu
+  if (d.mission_idx < 2) return false;
+
+  return true;
+}
+
+
+void SwarmCoordinator::hold_current_position(DroneContext& d)
+{
+  if (!d.mav->have_pose()) return;
+
+  d.sp = d.mav->current_pose();
+  d.sp.header.frame_id = "map";
+}
+
+
+void SwarmCoordinator::update_collision_stops()
+{
+  for (auto& d : drones_) {
+    d.paused_for_collision = false;
+    d.pause_partner = static_cast<std::size_t>(-1);
+  }
+
+  for (std::size_t i = 0; i < drones_.size(); ++i) {
+    for (std::size_t j = i + 1; j < drones_.size(); ++j) {
+      auto& a = drones_[i];
+      auto& b = drones_[j];
+
+      if (!collision_check_enabled(a) || !collision_check_enabled(b)) {
+        continue;
+      }
+
+      const double dist = distance_between(a, b);
+
+      if (dist < collision_stop_dist_) {
+        a.paused_for_collision = true;
+        b.paused_for_collision = true;
+        a.pause_partner = j;
+        b.pause_partner = i;
+
+        hold_current_position(a);
+        hold_current_position(b);
+
+        RCLCPP_WARN_THROTTLE(
+            get_logger(), *get_clock(), 1000,
+            "Collision stop: %s <-> %s dist=%.3f",
+            a.name.c_str(), b.name.c_str(), dist);
+      }
+    }
+  }
 }
 
 void SwarmCoordinator::init_drone_setpoint(DroneContext& d)
@@ -151,6 +236,53 @@ void SwarmCoordinator::start_item(DroneContext& d, const MissionItem& it)
       it.command.c_str());
 }
 
+void SwarmCoordinator::advance_mission(DroneContext& d)
+{
+  d.mission_idx++;
+
+  if (d.mission_idx < d.mission.size()) {
+    start_item(d, d.mission[d.mission_idx]);
+    return;
+  }
+
+  if (cycle_missions_) {
+    restart_drone_cycle(d);
+    return;
+  }
+
+  d.phase = DroneContext::Phase::DONE;
+}
+
+void SwarmCoordinator::restart_drone_cycle(DroneContext& d)
+{
+  if (d.mission.empty()) {
+    d.phase = DroneContext::Phase::DONE;
+    return;
+  }
+
+  std::size_t next_idx = 0;
+
+  while (next_idx < d.mission.size()) {
+    const auto& it = d.mission[next_idx];
+    if (it.command != "takeoff" && it.command != "land") {
+      break;
+    }
+    next_idx++;
+  }
+
+  if (next_idx >= d.mission.size()) {
+    d.phase = DroneContext::Phase::DONE;
+    return;
+  }
+
+  d.mission_idx = next_idx;
+  start_item(d, d.mission[d.mission_idx]);
+
+  RCLCPP_INFO(get_logger(), "[%s] Restarting mission cycle from item %zu",
+              d.name.c_str(), d.mission_idx);
+}
+
+
 void SwarmCoordinator::step_item(DroneContext& d, const MissionItem& it)
 {
   const std::string cmd = it.command;
@@ -160,9 +292,7 @@ void SwarmCoordinator::step_item(DroneContext& d, const MissionItem& it)
     do_publish();
     if (reached(d, it.x, it.y, it.z, it.tol)) {
       RCLCPP_INFO(get_logger(), "[%s] Reached waypoint %zu", d.name.c_str(), d.mission_idx);
-      d.mission_idx++;
-      if (d.mission_idx < d.mission.size()) start_item(d, d.mission[d.mission_idx]);
-      else d.phase = DroneContext::Phase::DONE;
+      advance_mission(d);
     }
     return;
   }
@@ -173,9 +303,7 @@ void SwarmCoordinator::step_item(DroneContext& d, const MissionItem& it)
       d.cmd_sent = d.mav->takeoff(it.z);
     }
     if (d.mav->have_pose() && d.mav->current_pose().pose.position.z >= it.z - 0.15) {
-      d.mission_idx++;
-      if (d.mission_idx < d.mission.size()) start_item(d, d.mission[d.mission_idx]);
-      else d.phase = DroneContext::Phase::DONE;
+      advance_mission(d);
     }
     return;
   }
@@ -260,9 +388,7 @@ void SwarmCoordinator::step_item(DroneContext& d, const MissionItem& it)
       d.yaw_initialized = true;
     }
     if (reached(d, it.x, it.y, it.z, it.tol)) {
-      d.mission_idx++;
-      if (d.mission_idx < d.mission.size()) start_item(d, d.mission[d.mission_idx]);
-      else d.phase = DroneContext::Phase::DONE;
+      advance_mission(d);
     }
     return;
   }
@@ -346,10 +472,20 @@ void SwarmCoordinator::step_drone(DroneContext& d)
       return;
 
     case Phase::EXECUTE:
+      if (d.paused_for_collision) {
+        publish_setpoint(d);
+        return;
+      }
+
       if (d.mission_idx >= d.mission.size()) {
+        if (cycle_missions_) {
+          restart_drone_cycle(d);
+          return;
+        }
         d.phase = Phase::DONE;
         return;
       }
+
       step_item(d, d.mission[d.mission_idx]);
       return;
 
@@ -394,6 +530,8 @@ void SwarmCoordinator::tick()
       }
     }
   }
+
+  update_collision_stops();
 
   for (auto& d : drones_) {
     step_drone(d);
