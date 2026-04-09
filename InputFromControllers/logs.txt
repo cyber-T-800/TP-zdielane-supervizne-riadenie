@@ -1,0 +1,279 @@
+"C:\Users\mbenu\Desktop\ŠKOLA\Ing\4. rok\Letný semester\Timovy projekt\VR_PY_BRIDGE\.venv\Scripts\python.exe" C:\VR_PY_BRIDGE\Buttons_Input.py 
+Watching controller events...
+Mapped buttons:
+  RIGHT: A=A, B=ApplicationMenu
+  LEFT : X=A, Y=ApplicationMenu
+  axis1=Trigger, axis2=Grip, axis0=Thumbstick/Touchpad
+Ctrl+C to stop.
+
+18:39:16 [LEFT] dev=1 INIT     controller detected
+18:39:16 [RIGHT] dev=2 INIT     controller detected
+18:39:17 [RIGHT] dev=2 UNTOUCH  RightTriggerClick
+18:39:18 [RIGHT] dev=2 TOUCH    RightTriggerClick
+18:39:18 [RIGHT] dev=2 UNTOUCH  RightTriggerClick
+18:39:21 [RIGHT] dev=2 TOUCH    A
+18:39:22 [RIGHT] dev=2 TOUCH    B
+18:39:22 [RIGHT] dev=2 UNTOUCH  B
+18:39:22 [RIGHT] dev=2 TOUCH    B
+18:39:22 [RIGHT] dev=2 UNTOUCH  A, B
+18:39:22 [RIGHT] dev=2 TOUCH    B
+18:39:23 [RIGHT] dev=2 UNTOUCH  B
+18:39:24 [RIGHT] dev=2 TOUCH    A
+18:39:24 [RIGHT] dev=2 TOUCH    B
+18:39:25 [RIGHT] dev=2 UNTOUCH  A, B
+18:39:26 [RIGHT] dev=2 TOUCH    RightThumbstickTouch
+18:39:26 [RIGHT] dev=2 UNTOUCH  RightThumbstickTouch
+18:39:26 [RIGHT] dev=2 TOUCH    RightThumbstickTouch
+18:39:27 [RIGHT] dev=2 UNTOUCH  RightThumbstickTouch
+18:39:27 [RIGHT] dev=2 TOUCH    RightThumbstickTouch
+18:39:27 [RIGHT] dev=2 UNTOUCH  RightThumbstickTouch
+18:39:29 [RIGHT] dev=2 PRESS    RightGripClick, RightGripClick
+18:39:29 [RIGHT] dev=2 TOUCH    RightGripClick, RightGripClick
+18:39:29 [RIGHT] dev=2 AXIS     RightGrip=0.416
+18:39:29 [RIGHT] dev=2 AXIS     RightGrip=1.000
+18:39:29 [RIGHT] dev=2 AXIS     RightGrip=0.769
+18:39:29 [RIGHT] dev=2 RELEASE  RightGripClick, RightGripClick
+18:39:29 [RIGHT] dev=2 UNTOUCH  RightGripClick, RightGripClick
+18:39:29 [RIGHT] dev=2 AXIS     RightGrip=0.000
+18:39:30 [RIGHT] dev=2 PRESS    RightGripClick, RightGripClick
+18:39:30 [RIGHT] dev=2 TOUCH    RightGripClick, RightGripClick
+18:39:30 [RIGHT] dev=2 AXIS     RightGrip=1.000
+18:39:30 [RIGHT] dev=2 AXIS     RightGrip=0.659
+18:39:30 [RIGHT] dev=2 AXIS     RightGrip=0.333
+18:39:30 [RIGHT] dev=2 RELEASE  RightGripClick, RightGripClick
+18:39:30 [RIGHT] dev=2 UNTOUCH  RightGripClick, RightGripClick
+18:39:30 [RIGHT] dev=2 AXIS     RightGrip=0.000
+18:39:31 [RIGHT] dev=2 PRESS    RightGripClick, RightGripClick
+18:39:31 [RIGHT] dev=2 TOUCH    RightGripClick, RightGripClick
+18:39:31 [RIGHT] dev=2 AXIS     RightGrip=1.000
+18:39:32 [RIGHT] dev=2 AXIS     RightGrip=0.643
+18:39:32 [RIGHT] dev=2 RELEASE  RightGripClick, RightGripClick
+18:39:32 [RIGHT] dev=2 UNTOUCH  RightGripClick, RightGripClick
+18:39:32 [RIGHT] dev=2 AXIS     RightGrip=0.000
+18:39:32 [RIGHT] dev=2 TOUCH    RightGripClick, RightGripClick
+18:39:33 [RIGHT] dev=2 PRESS    RightGripClick, RightGripClick
+18:39:33 [RIGHT] dev=2 AXIS     RightGrip=0.384
+18:39:33 [RIGHT] dev=2 AXIS     RightGrip=0.529
+18:39:33 [RIGHT] dev=2 RELEASE  RightGripClick, RightGripClick
+18:39:33 [RIGHT] dev=2 AXIS     RightGrip=0.149
+18:39:33 [RIGHT] dev=2 UNTOUCH  RightGripClick, RightGripClick
+18:39:34 [RIGHT] dev=2 PRESS    RightGripClick, RightGripClick
+18:39:34 [RIGHT] dev=2 TOUCH    RightGripClick, RightGripClick
+18:39:34 [RIGHT] dev=2 AXIS     RightGrip=0.545
+18:39:34 [RIGHT] dev=2 AXIS     RightGrip=0.831
+18:39:34 [RIGHT] dev=2 AXIS     RightGrip=1.000
+18:39:34 [RIGHT] dev=2 AXIS     RightGrip=0.808
+18:39:34 [RIGHT] dev=2 AXIS     RightGrip=0.604
+18:39:34 [RIGHT] dev=2 RELEASE  RightGripClick, RightGripClick
+18:39:34 [RIGHT] dev=2 UNTOUCH  RightGripClick, RightGripClick
+18:39:34 [RIGHT] dev=2 AXIS     RightGrip=0.000
+18:39:35 [RIGHT] dev=2 TOUCH    RightGripClick, RightGripClick
+18:39:35 [RIGHT] dev=2 PRESS    RightGripClick, RightGripClick
+18:39:35 [RIGHT] dev=2 AXIS     RightGrip=0.329
+18:39:35 [RIGHT] dev=2 AXIS     RightGrip=0.663
+18:39:35 [RIGHT] dev=2 AXIS     RightGrip=1.000
+18:39:35 [RIGHT] dev=2 AXIS     RightGrip=0.686
+18:39:35 [RIGHT] dev=2 AXIS     RightGrip=0.529
+18:39:35 [RIGHT] dev=2 RELEASE  RightGripClick, RightGripClick
+18:39:35 [RIGHT] dev=2 UNTOUCH  RightGripClick, RightGripClick
+18:39:35 [RIGHT] dev=2 AXIS     RightGrip=0.000
+18:39:36 [RIGHT] dev=2 PRESS    RightGripClick, RightGripClick
+18:39:36 [RIGHT] dev=2 TOUCH    RightGripClick, RightGripClick
+18:39:36 [RIGHT] dev=2 AXIS     RightGrip=0.529
+18:39:36 [RIGHT] dev=2 AXIS     RightGrip=0.757
+18:39:36 [RIGHT] dev=2 AXIS     RightGrip=1.000
+18:39:36 [RIGHT] dev=2 RELEASE  RightGripClick, RightGripClick
+18:39:36 [RIGHT] dev=2 AXIS     RightGrip=0.165
+18:39:36 [RIGHT] dev=2 UNTOUCH  RightGripClick, RightGripClick
+18:39:36 [RIGHT] dev=2 PRESS    RightGripClick, RightGripClick
+18:39:36 [RIGHT] dev=2 TOUCH    RightGripClick, RightGripClick
+18:39:36 [RIGHT] dev=2 AXIS     RightGrip=0.510
+18:39:36 [RIGHT] dev=2 AXIS     RightGrip=1.000
+18:39:37 [RIGHT] dev=2 RELEASE  RightGripClick, RightGripClick
+18:39:37 [RIGHT] dev=2 UNTOUCH  RightGripClick, RightGripClick
+18:39:37 [RIGHT] dev=2 AXIS     RightGrip=0.000
+18:39:38 [RIGHT] dev=2 TOUCH    RightTriggerClick
+18:39:39 [RIGHT] dev=2 PRESS    RightTriggerClick
+18:39:39 [RIGHT] dev=2 AXIS     RightTrigger=0.867
+18:39:39 [RIGHT] dev=2 AXIS     RightTrigger=1.000
+18:39:39 [RIGHT] dev=2 AXIS     RightTrigger=0.408
+18:39:39 [RIGHT] dev=2 RELEASE  RightTriggerClick
+18:39:39 [RIGHT] dev=2 AXIS     RightTrigger=0.000
+18:39:39 [RIGHT] dev=2 UNTOUCH  RightTriggerClick
+18:39:41 [RIGHT] dev=2 TOUCH    RightThumbstickTouch
+18:39:41 [RIGHT] dev=2 AXIS     RightThumbstick=(0.383,-0.164)
+18:39:41 [RIGHT] dev=2 AXIS     RightThumbstick=(0.941,-0.338)
+18:39:42 [RIGHT] dev=2 AXIS     RightThumbstick=(0.969,-0.211)
+18:39:42 [RIGHT] dev=2 AXIS     RightThumbstick=(0.000,0.000)
+18:39:42 [RIGHT] dev=2 AXIS     RightThumbstick=(-0.508,0.172)
+18:39:42 [RIGHT] dev=2 AXIS     RightThumbstick=(-0.952,0.305)
+18:39:42 [RIGHT] dev=2 AXIS     RightThumbstick=(-0.815,0.579)
+18:39:42 [RIGHT] dev=2 AXIS     RightThumbstick=(-0.612,0.791)
+18:39:42 [RIGHT] dev=2 AXIS     RightThumbstick=(-0.495,0.869)
+18:39:42 [RIGHT] dev=2 AXIS     RightThumbstick=(-0.285,0.959)
+18:39:42 [RIGHT] dev=2 AXIS     RightThumbstick=(0.000,1.000)
+18:39:43 [RIGHT] dev=2 AXIS     RightThumbstick=(0.000,0.000)
+18:39:43 [RIGHT] dev=2 AXIS     RightThumbstick=(0.000,-1.000)
+18:39:43 [RIGHT] dev=2 AXIS     RightThumbstick=(-0.094,-0.094)
+18:39:43 [RIGHT] dev=2 AXIS     RightThumbstick=(-0.203,0.008)
+18:39:43 [RIGHT] dev=2 AXIS     RightThumbstick=(-0.578,0.398)
+18:39:43 [RIGHT] dev=2 AXIS     RightThumbstick=(-0.833,0.553)
+18:39:43 [RIGHT] dev=2 AXIS     RightThumbstick=(-0.919,0.395)
+18:39:43 [RIGHT] dev=2 AXIS     RightThumbstick=(-0.992,0.124)
+18:39:43 [RIGHT] dev=2 AXIS     RightThumbstick=(-1.000,0.000)
+18:39:43 [RIGHT] dev=2 AXIS     RightThumbstick=(-0.903,-0.430)
+18:39:43 [RIGHT] dev=2 AXIS     RightThumbstick=(-0.364,-0.931)
+18:39:43 [RIGHT] dev=2 AXIS     RightThumbstick=(0.000,-1.000)
+18:39:44 [RIGHT] dev=2 AXIS     RightThumbstick=(0.318,-0.948)
+18:39:44 [RIGHT] dev=2 AXIS     RightThumbstick=(0.501,-0.866)
+18:39:44 [RIGHT] dev=2 AXIS     RightThumbstick=(0.596,-0.803)
+18:39:44 [RIGHT] dev=2 AXIS     RightThumbstick=(0.736,-0.677)
+18:39:44 [RIGHT] dev=2 AXIS     RightThumbstick=(0.860,-0.510)
+18:39:44 [RIGHT] dev=2 AXIS     RightThumbstick=(0.941,-0.338)
+18:39:44 [RIGHT] dev=2 AXIS     RightThumbstick=(0.836,-0.359)
+18:39:44 [RIGHT] dev=2 AXIS     RightThumbstick=(0.000,-0.328)
+18:39:44 [RIGHT] dev=2 AXIS     RightThumbstick=(-0.383,-0.336)
+18:39:44 [RIGHT] dev=2 AXIS     RightThumbstick=(-0.950,-0.312)
+18:39:44 [RIGHT] dev=2 AXIS     RightThumbstick=(-0.977,-0.214)
+18:39:44 [RIGHT] dev=2 AXIS     RightThumbstick=(-0.992,-0.124)
+18:39:44 [RIGHT] dev=2 AXIS     RightThumbstick=(-1.000,0.000)
+18:39:44 [RIGHT] dev=2 AXIS     RightThumbstick=(-0.995,0.101)
+18:39:44 [RIGHT] dev=2 AXIS     RightThumbstick=(0.000,0.281)
+18:39:44 [RIGHT] dev=2 AXIS     RightThumbstick=(0.633,0.414)
+18:39:44 [RIGHT] dev=2 AXIS     RightThumbstick=(0.836,0.445)
+18:39:44 [RIGHT] dev=2 AXIS     RightThumbstick=(0.383,0.891)
+18:39:44 [RIGHT] dev=2 AXIS     RightThumbstick=(-0.008,1.000)
+18:39:44 [RIGHT] dev=2 AXIS     RightThumbstick=(-0.093,0.996)
+18:39:44 [RIGHT] dev=2 AXIS     RightThumbstick=(0.000,1.000)
+18:39:45 [RIGHT] dev=2 AXIS     RightThumbstick=(0.000,0.477)
+18:39:45 [RIGHT] dev=2 AXIS     RightThumbstick=(0.000,-0.406)
+18:39:45 [RIGHT] dev=2 AXIS     RightThumbstick=(0.000,-1.000)
+18:39:45 [RIGHT] dev=2 AXIS     RightThumbstick=(-0.555,-0.594)
+18:39:45 [RIGHT] dev=2 AXIS     RightThumbstick=(-0.981,-0.192)
+18:39:45 [RIGHT] dev=2 AXIS     RightThumbstick=(-1.000,0.000)
+18:39:45 [RIGHT] dev=2 AXIS     RightThumbstick=(-0.539,0.148)
+18:39:45 [RIGHT] dev=2 AXIS     RightThumbstick=(0.000,0.141)
+18:39:45 [RIGHT] dev=2 AXIS     RightThumbstick=(0.531,0.000)
+18:39:45 [RIGHT] dev=2 AXIS     RightThumbstick=(0.900,-0.436)
+18:39:45 [RIGHT] dev=2 AXIS     RightThumbstick=(0.946,-0.325)
+18:39:45 [RIGHT] dev=2 AXIS     RightThumbstick=(0.981,-0.192)
+18:39:45 [RIGHT] dev=2 AXIS     RightThumbstick=(0.148,0.000)
+18:39:45 [RIGHT] dev=2 AXIS     RightThumbstick=(-0.508,0.000)
+18:39:45 [RIGHT] dev=2 AXIS     RightThumbstick=(-1.000,-0.016)
+18:39:46 [RIGHT] dev=2 AXIS     RightThumbstick=(-0.926,-0.376)
+18:39:46 [RIGHT] dev=2 AXIS     RightThumbstick=(-0.678,-0.735)
+18:39:46 [RIGHT] dev=2 AXIS     RightThumbstick=(0.000,-1.000)
+18:39:46 [RIGHT] dev=2 AXIS     RightThumbstick=(0.000,-0.500)
+18:39:46 [RIGHT] dev=2 AXIS     RightThumbstick=(0.047,0.000)
+18:39:46 [RIGHT] dev=2 AXIS     RightThumbstick=(0.352,0.852)
+18:39:46 [RIGHT] dev=2 AXIS     RightThumbstick=(0.344,0.680)
+18:39:46 [RIGHT] dev=2 AXIS     RightThumbstick=(-0.572,-0.820)
+18:39:46 [RIGHT] dev=2 AXIS     RightThumbstick=(-0.419,-0.908)
+18:39:46 [RIGHT] dev=2 AXIS     RightThumbstick=(0.000,-0.094)
+18:39:46 [RIGHT] dev=2 UNTOUCH  RightThumbstickTouch
+18:39:50 [LEFT] dev=1 TOUCH    X
+18:39:50 [LEFT] dev=1 PRESS    X
+18:39:50 [LEFT] dev=1 RELEASE  X
+18:39:51 [LEFT] dev=1 TOUCH    Y
+18:39:51 [LEFT] dev=1 UNTOUCH  X
+18:39:51 [LEFT] dev=1 PRESS    Y
+18:39:51 [LEFT] dev=1 RELEASE  Y
+18:39:51 [LEFT] dev=1 UNTOUCH  Y
+18:39:51 [LEFT] dev=1 TOUCH    Y
+18:39:52 [LEFT] dev=1 UNTOUCH  Y
+18:39:52 [LEFT] dev=1 TOUCH    X
+18:39:52 [LEFT] dev=1 PRESS    X
+18:39:52 [LEFT] dev=1 RELEASE  X
+18:39:52 [LEFT] dev=1 UNTOUCH  X
+18:39:53 [LEFT] dev=1 TOUCH    X, Y
+18:39:53 [LEFT] dev=1 UNTOUCH  Y
+18:39:53 [LEFT] dev=1 UNTOUCH  X
+18:39:53 [LEFT] dev=1 TOUCH    Y
+18:39:53 [LEFT] dev=1 PRESS    Y
+18:39:53 [LEFT] dev=1 RELEASE  Y
+18:39:54 [LEFT] dev=1 TOUCH    X
+18:39:54 [LEFT] dev=1 UNTOUCH  X, Y
+18:39:55 [LEFT] dev=1 PRESS    LeftGripClick, LeftGripClick
+18:39:55 [LEFT] dev=1 TOUCH    LeftGripClick, LeftGripClick
+18:39:55 [LEFT] dev=1 AXIS     LeftGrip=0.271
+18:39:55 [LEFT] dev=1 AXIS     LeftGrip=0.533
+18:39:55 [LEFT] dev=1 AXIS     LeftGrip=0.761
+18:39:55 [LEFT] dev=1 AXIS     LeftGrip=0.863
+18:39:55 [LEFT] dev=1 AXIS     LeftGrip=1.000
+18:39:59 [LEFT] dev=1 AXIS     LeftGrip=0.522
+18:39:59 [LEFT] dev=1 RELEASE  LeftGripClick, LeftGripClick
+18:39:59 [LEFT] dev=1 UNTOUCH  LeftGripClick, LeftGripClick
+18:39:59 [LEFT] dev=1 AXIS     LeftGrip=0.000
+18:40:00 [LEFT] dev=1 TOUCH    LeftThumbstickTouch
+18:40:00 [LEFT] dev=1 AXIS     LeftThumbstick=(-0.320,0.070)
+18:40:01 [LEFT] dev=1 AXIS     LeftThumbstick=(-0.594,0.141)
+18:40:01 [LEFT] dev=1 AXIS     LeftThumbstick=(-0.984,0.177)
+18:40:01 [LEFT] dev=1 AXIS     LeftThumbstick=(-1.000,0.023)
+18:40:01 [LEFT] dev=1 AXIS     LeftThumbstick=(0.000,0.000)
+18:40:01 [LEFT] dev=1 AXIS     LeftThumbstick=(1.000,0.000)
+18:40:01 [LEFT] dev=1 TOUCH    X, Y
+18:40:02 [LEFT] dev=1 AXIS     LeftThumbstick=(0.000,0.211)
+18:40:02 [LEFT] dev=1 AXIS     LeftThumbstick=(-0.047,0.453)
+18:40:02 [LEFT] dev=1 UNTOUCH  X, Y
+18:40:02 [LEFT] dev=1 AXIS     LeftThumbstick=(-0.484,0.875)
+18:40:02 [LEFT] dev=1 AXIS     LeftThumbstick=(-0.264,0.965)
+18:40:02 [LEFT] dev=1 AXIS     LeftThumbstick=(0.000,1.000)
+18:40:02 [LEFT] dev=1 AXIS     LeftThumbstick=(0.184,0.983)
+18:40:02 [LEFT] dev=1 AXIS     LeftThumbstick=(0.298,0.954)
+18:40:02 [LEFT] dev=1 AXIS     LeftThumbstick=(0.594,0.804)
+18:40:02 [LEFT] dev=1 AXIS     LeftThumbstick=(0.894,0.447)
+18:40:02 [LEFT] dev=1 AXIS     LeftThumbstick=(0.941,0.338)
+18:40:02 [LEFT] dev=1 AXIS     LeftThumbstick=(0.989,0.147)
+18:40:02 [LEFT] dev=1 AXIS     LeftThumbstick=(1.000,0.000)
+18:40:02 [LEFT] dev=1 AXIS     LeftThumbstick=(0.305,-0.430)
+18:40:02 [LEFT] dev=1 AXIS     LeftThumbstick=(0.000,-0.852)
+18:40:02 [LEFT] dev=1 AXIS     LeftThumbstick=(-0.008,-1.000)
+18:40:03 [LEFT] dev=1 AXIS     LeftThumbstick=(0.211,-0.664)
+18:40:03 [LEFT] dev=1 AXIS     LeftThumbstick=(1.000,-0.023)
+18:40:03 [LEFT] dev=1 AXIS     LeftThumbstick=(0.000,0.531)
+18:40:03 [LEFT] dev=1 TOUCH    X
+18:40:03 [LEFT] dev=1 AXIS     LeftThumbstick=(0.000,0.289)
+18:40:03 [LEFT] dev=1 UNTOUCH  LeftThumbstickTouch
+18:40:03 [LEFT] dev=1 AXIS     LeftThumbstick=(0.000,0.000)
+18:40:03 [LEFT] dev=1 UNTOUCH  X
+18:40:03 [LEFT] dev=1 TOUCH    X, Y
+18:40:04 [LEFT] dev=1 UNTOUCH  X, Y
+18:40:04 [LEFT] dev=1 TOUCH    X
+18:40:05 [LEFT] dev=1 PRESS    X
+18:40:05 [LEFT] dev=1 RELEASE  X
+18:40:05 [LEFT] dev=1 UNTOUCH  X
+18:40:05 [LEFT] dev=1 TOUCH    Y
+18:40:05 [LEFT] dev=1 PRESS    Y
+18:40:05 [LEFT] dev=1 RELEASE  Y
+18:40:05 [LEFT] dev=1 UNTOUCH  Y
+18:40:06 [LEFT] dev=1 TOUCH    Y
+18:40:06 [LEFT] dev=1 PRESS    Y
+18:40:06 [LEFT] dev=1 RELEASE  Y
+18:40:06 [LEFT] dev=1 PRESS    Y
+18:40:06 [LEFT] dev=1 RELEASE  Y
+18:40:06 [LEFT] dev=1 UNTOUCH  Y
+18:40:07 [LEFT] dev=1 TOUCH    X
+18:40:07 [LEFT] dev=1 PRESS    X
+18:40:07 [LEFT] dev=1 RELEASE  X
+18:40:07 [LEFT] dev=1 UNTOUCH  X
+18:40:07 [LEFT] dev=1 TOUCH    LeftGripClick, LeftGripClick
+18:40:07 [LEFT] dev=1 AXIS     LeftGrip=0.227
+18:40:07 [LEFT] dev=1 PRESS    LeftGripClick, LeftGripClick
+18:40:07 [LEFT] dev=1 AXIS     LeftGrip=0.549
+18:40:08 [LEFT] dev=1 AXIS     LeftGrip=0.847
+18:40:08 [LEFT] dev=1 AXIS     LeftGrip=0.929
+18:40:08 [LEFT] dev=1 AXIS     LeftGrip=0.737
+18:40:08 [LEFT] dev=1 AXIS     LeftGrip=0.329
+18:40:08 [LEFT] dev=1 RELEASE  LeftGripClick, LeftGripClick
+18:40:08 [LEFT] dev=1 UNTOUCH  LeftGripClick, LeftGripClick
+18:40:08 [LEFT] dev=1 AXIS     LeftGrip=0.031
+Traceback (most recent call last):
+  File "C:\VR_PY_BRIDGE\Buttons_Input.py", line 256, in <module>
+    main()
+    ~~~~^^
+  File "C:\VR_PY_BRIDGE\Buttons_Input.py", line 246, in main
+    time.sleep(POLL_SECONDS)
+    ~~~~~~~~~~^^^^^^^^^^^^^^
+KeyboardInterrupt
+
+Process finished with exit code -1073741510 (0xC000013A: interrupted by Ctrl+C)
