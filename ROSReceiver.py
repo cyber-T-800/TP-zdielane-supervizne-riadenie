@@ -2,7 +2,6 @@ from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5.QtGui import QImage
 
 import rclpy
-from rclpy.executors import ExternalShutdownException, SingleThreadedExecutor
 from rclpy.node import Node
 from sensor_msgs.msg import CompressedImage, Image
 
@@ -13,7 +12,6 @@ class ROSReceiver(QThread):
 
     def __init__(self, drone_id,topic: str, compressed: bool = True):
         super().__init__()
-        rclpy.init()
         self.topic = topic
         self.drone_idx = drone_id
         self.compressed = compressed
@@ -36,20 +34,21 @@ class ROSReceiver(QThread):
 
 
     def run(self):
+        rclpy.init(args=None)
 
-        node = Node(f"drone_viewer_{self.drone_idx + 1}")
+        self.node = Node(f"drone_viewer_{self.drone_idx + 1}")
 
         self.status_message.emit(self.drone_idx, f"subscribing: {self.topic}")
 
         if self.compressed:
-            self.subscription = node.create_subscription(
+            self.subscription = self.node.create_subscription(
                 CompressedImage,
                 self.topic,
                 self._on_compressed,
                 10,
             )
         else:
-            self.subscription = node.create_subscription(
+            self.subscription = self.node.create_subscription(
                 Image,
                 self.topic,
                 self._on_raw,
