@@ -8,10 +8,11 @@ from PyQt5.QtWidgets import (
 )
 
 class MainWindow(QMainWindow):
-    """Main GUI window"""
-
-    def __init__(self, num_of_panels = 3):
+    def __init__(self):
         super().__init__()
+
+    def setup_main_window(self, num_of_panels):
+
         self.panels = {}
         self.current_idx = 0
 

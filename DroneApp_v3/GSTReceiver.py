@@ -2,26 +2,29 @@ import gi
 import numpy as np
 
 gi.require_version("Gst", "1.0")
-from gi.repository import Gst
 
 from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5.QtGui import QImage
 
-Gst.init(None)
 
 class GSTReceiver(QThread):
     frame_received = pyqtSignal(int ,QImage)
     status_message = pyqtSignal(int, str)
 
-    def __init__(self, drone_id, port=2222):
+    def __init__(self, drone_id, port):
         super().__init__()
         self.drone_id = drone_id
+
         self.port = port
         self.running = False
         self.pipeline = None
         self.appsink = None
 
     def run(self):
+        from gi.repository import Gst
+
+        Gst.init(None)
+
         self.running = True
 
         pipeline_str = (
@@ -48,6 +51,8 @@ class GSTReceiver(QThread):
 
             self.status_message.emit(self.drone_id,f"Receiver beží na porte {self.port}")
 
+            print(f"Receiver beží na porte {self.port}")
+
             while self.running:
                 self.msleep(10)
 
@@ -64,6 +69,7 @@ class GSTReceiver(QThread):
         self.wait()
 
     def on_new_sample(self, sink):
+        from gi.repository import Gst
         sample = sink.emit("pull-sample")
         if not sample:
             return Gst.FlowReturn.ERROR
