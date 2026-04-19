@@ -40,11 +40,6 @@ class MainWindow(QMainWindow):
 
         self.main_layout.addLayout(self.side_layout)
 
-
-        # Timer updates status text
-        # self.refresh_timer = QTimer(self)
-        # self.refresh_timer.timeout.connect(self.refresh_panel_status)
-        # self.refresh_timer.start(400)
     def swap_panels(self, idx):
         if idx == self.current_idx or idx not in self.panels:
             return
@@ -52,11 +47,9 @@ class MainWindow(QMainWindow):
         main_panel = self.panels[self.current_idx]
         target_panel = self.panels[idx]
 
-        # Remove both widgets
         self.main_layout.removeWidget(main_panel)
         self.side_layout.removeWidget(target_panel)
 
-        # Add swapped widgets back
         self.main_layout.insertWidget(0, target_panel)
         self.side_layout.insertWidget(self.current_idx, main_panel)
 
@@ -70,5 +63,11 @@ class MainWindow(QMainWindow):
     def set_stream_image(self, idx, image):
         self.panels[idx].set_image(image)
 
-    def set_atribute(self,idx, atribute):
-        self.panels[idx].set_location(atribute)
+    def set_battery(self,idx, percentage, voltage):
+        self.panels[idx].set_battery(percentage, voltage)
+
+    def set_location(self,idx, x, y, z):
+        self.panels[idx].set_location(x, y, z)
+    
+    def set_mode(self,idx, connected, armed, guided, manual_input, mode):
+        self.panels[idx].set_mode(connected, armed, guided, manual_input, mode)

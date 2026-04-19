@@ -38,16 +38,23 @@ class DroneApp(MainWindow):
                 r.frame_received.connect(self.set_stream_image)
                 r.start()
 
-        else:
-            self.node_manager = NodeManager()
-            self.droneCom = DroneCom()
 
-            for i in range(self.num_of_drones):
-                self.node_manager.create_node(drone_id=i, comunicator=self.droneCom, img_topic= self.topics[i])
+        self.node_manager = NodeManager()
+        self.droneCom = DroneCom()
 
+        cam = not self.args.gst
+
+        for i in range(self.num_of_drones):
+            self.node_manager.create_node(drone_id=i,cam=cam, comunicator=self.droneCom, img_topic= self.topics[i])
+
+        if cam:
             self.droneCom.frame_received.connect(self.set_stream_image)
+        
+        self.droneCom.battery_recived.connect(self.set_battery)
+        self.droneCom.position_recived.connect(self.set_location)
+        self.droneCom.state_recived.connect(self.set_mode)
 
-            self.node_manager.start()
+        self.node_manager.start()
 
 
         self.show()
@@ -56,8 +63,7 @@ class DroneApp(MainWindow):
         if self.args.gst:
             for r in self.receivers:
                 r.stop()
-        else:
-            self.node_manager.stop()
+        self.node_manager.stop()
 
 
 def parse_args():

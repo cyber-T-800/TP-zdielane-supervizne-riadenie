@@ -13,8 +13,8 @@ class NodeManager(QThread):
         rclpy.init()
         self.executor = MultiThreadedExecutor()
 
-    def create_node(self, drone_id, comunicator, img_topic):
-        node = DroneNode(drone_id=drone_id, comunicator=comunicator, img_topic=img_topic)
+    def create_node(self, drone_id, cam, comunicator, img_topic):
+        node = DroneNode(drone_id=drone_id, cam=cam, comunicator=comunicator, img_topic=img_topic)
         self.nodes.append(node)
         self.executor.add_node(node)
 
