@@ -1,7 +1,7 @@
 import sys
 from PyQt5.QtWidgets import QApplication
 
-from MainWindow import MainWindow
+from MainWindow_Miro import MainWindow
 from GSTReceiver import GSTReceiver
 from InputFromControllers.filesForMaco.VRInputThread import VRInputThread
 
