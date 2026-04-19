@@ -50,6 +50,7 @@ class MainWindow(QMainWindow):
         self.highlight_idx = (self.highlight_idx + 1) % self.num_of_panels
         self.update_selection_highlight()
 
+
     def confirm_selected_panel(self):
         self.swap_panels(self.highlight_idx)
 

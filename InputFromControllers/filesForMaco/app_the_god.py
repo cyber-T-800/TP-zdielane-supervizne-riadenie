@@ -25,6 +25,7 @@ def main():
     vr_input.joystick_changed.connect(window.handle_joystick) #
     vr_input.mode_next.connect(window.select_next_mode)
 
+
     app.aboutToQuit.connect(vr_input.stop)
 
     for r in receivers:

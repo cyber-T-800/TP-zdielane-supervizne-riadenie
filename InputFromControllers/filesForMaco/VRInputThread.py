@@ -118,6 +118,7 @@ class VRInputThread(QThread):
                     if role_name != "RIGHT":
                         continue
 
+
                     pressed_mask = int(state.ulButtonPressed)
 
                     if device_index not in self.previous_pressed:
