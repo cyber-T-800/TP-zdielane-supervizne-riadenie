@@ -10,29 +10,26 @@ from PyQt5.QtWidgets import (
 
 class StreamPanel(QFrame):
 
-    clicked = pyqtSignal(int)     
+    clicked = pyqtSignal(int)
 
     def __init__(self, drone_idx):
         super().__init__()
 
         self.drone_idx = drone_idx
-
-        self.drone = "drone "+ str(drone_idx+1 )
+        self.drone = "drone " + str(drone_idx + 1)
         self.last_image = None
+        self.is_selected = False
 
         self.container = QWidget(self)
 
         self.image_label = QLabel(self.container)
         self.image_label.setAlignment(Qt.AlignCenter)
-        self.image_label.setStyleSheet("background: #101010; color: #999;font-size: 24pt;" )
+        self.image_label.setStyleSheet("background: #101010; color: #999;font-size: 24pt;")
         self.image_label.setText("No image")
-        
+
         self.location_label = QLabel("-|-", self.container)
-
         self.drone_label = QLabel(self.drone, self.container)
-
         self.fps_label = QLabel("-|-", self.container)
-
         self.mode_label = QLabel("-|-", self.container)
 
         style = """
@@ -46,23 +43,43 @@ class StreamPanel(QFrame):
         for lbl in [self.location_label, self.fps_label, self.drone_label, self.mode_label]:
             lbl.setStyleSheet(style)
 
-
         layout = QVBoxLayout()
+        layout.setContentsMargins(6, 6, 6, 6)
         layout.addWidget(self.container)
         self.setLayout(layout)
 
-#make proper location fromat
+        self.update_border()
+
+    def update_border(self):
+        if self.is_selected:
+            self.setStyleSheet("""
+                StreamPanel {
+                    border: 4px solid #00ff66;
+                    background-color: #101010;
+                }
+            """)
+        else:
+            self.setStyleSheet("""
+                StreamPanel {
+                    border: 2px solid #2a2a2a;
+                    background-color: #101010;
+                }
+            """)
+
+    def set_selected(self, selected: bool):
+        self.is_selected = selected
+        self.update_border()
+
     def set_location(self, loc):
         self.location = loc
         self.location_label.setText(loc)
-        
+
     def set_fps(self, fps):
         self.fps_label.setText(f"{fps} FPS")
 
     def set_image(self, image):
         self.last_image = image
         self._rescale_image()
-
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
@@ -74,6 +91,7 @@ class StreamPanel(QFrame):
 
         margin = 20
 
+        self.location_label.adjustSize()
         self.location_label.move(margin, margin)
 
         self.fps_label.adjustSize()
@@ -94,9 +112,9 @@ class StreamPanel(QFrame):
             self.container.height() - self.mode_label.height() - margin
         )
 
-    def _rescale_image(self): 
-        if self.last_image is None: 
-            return 
+    def _rescale_image(self):
+        if self.last_image is None:
+            return
         pix = QPixmap.fromImage(self.last_image).scaled(
             self.image_label.size(),
             Qt.KeepAspectRatio,
