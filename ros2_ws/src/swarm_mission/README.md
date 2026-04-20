@@ -4,6 +4,7 @@ A short guide on how to launch swarm mission (Gazebo + ArduPilot SITL + MAVROS +
 
 ### 1. Launch Gazebo world (Terminal 1)
 ```
+cd TP-zdielane-supervizne-riadenie/
 bash runway_world.sh
 ```
 ### 2. Launch 3 ArduPilot SITL (Terminal 2,3,4)
