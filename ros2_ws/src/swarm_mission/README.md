@@ -4,7 +4,7 @@ A short guide on how to launch swarm mission (Gazebo + ArduPilot SITL + MAVROS +
 
 ### 1. Launch Gazebo world (Terminal 1)
 ```
-gazebo /home/lrs/TP-zdielane-supervizne-riadenie/World_Dron/worlds/iris_arducopter_runway.world
+bash runway_world.sh
 ```
 ### 2. Launch 3 ArduPilot SITL (Terminal 2,3,4)
 ```
@@ -19,6 +19,9 @@ sim_vehicle.py -v ArduCopter -f gazebo-iris --console -I2 --sysid 2
 cd ardupilot/ArduCopter
 sim_vehicle.py -v ArduCopter -f gazebo-iris --console -I3 --sysid 3
 ```
+***NOTE:** Wait until you see these messages:*
+- `EKF3 IMU0 origin set`
+- `EKF3 IMU1 origin set`
 ### 3. Launch MAVROS 3 times (Terminal 5,6,7)
 ```
 ros2 run mavros mavros_node --ros-args -p fcu_url:=udp://127.0.0.1:14561@14561 -p tgt_system:=1 --remap __ns:=/drone1
