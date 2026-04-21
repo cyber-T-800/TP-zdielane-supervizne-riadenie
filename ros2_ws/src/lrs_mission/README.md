@@ -1,11 +1,10 @@
-# SAM - drones
+# Simple automatic mission
 A short guide on how to launch simple automatic mission (Gazebo + ArduPilot SITL + MAVROS + ROS2 mission node).
 ## Setup simulation
 
 ### 1. Launch Gazebo world (Terminal 1)
 ```
-gazebo <path_to_world>/fei_lrs_gazebo_singleCamera.world
-//gazebo /home/lrs/TP-zdielane-supervizne-riadenie/World_Dron/worlds/fei_lrs_gazebo_singleCamera.world
+gazebo /home/lrs/TP-zdielane-supervizne-riadenie/World_Dron/worlds/fei_lrs_gazebo_singleCamera.world
 ```
 ### 2. Launch ArduPilot SITL (Terminal 2)
 ```
@@ -41,3 +40,4 @@ ros2 topic pub --once /stop std_msgs/msg/Bool "{data: true}"
 https://github.com/KocurMaros/LRS-FEI/
 
 https://drive.google.com/drive/folders/1QdG5tw1aGTgOuVNYAXl9BhDGObsHb8TW?usp=sharing
+
