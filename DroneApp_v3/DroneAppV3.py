@@ -7,14 +7,17 @@ from DroneCom import DroneCom
 from MainWindow import MainWindow
 from NodeManager import NodeManager
 from GSTReceiver import GSTReceiver
+from VRInputThread import VRInputThread
 
 class DroneApp(MainWindow):
     def __init__(self, args):
         super().__init__()
 
-        self.num_of_drones = 3
+        self.num_of_drones = 1
         self.args = args
         self.topics = self.args.inputs
+
+        self.vrthread = VRInputThread()
 
         self.setup_main_window(num_of_panels=self.num_of_drones)
 
@@ -39,6 +42,8 @@ class DroneApp(MainWindow):
                 r.start()
 
 
+
+
         self.node_manager = NodeManager()
         self.droneCom = DroneCom()
 
@@ -53,6 +58,8 @@ class DroneApp(MainWindow):
         self.droneCom.battery_recived.connect(self.set_battery)
         self.droneCom.position_recived.connect(self.set_location)
         self.droneCom.state_recived.connect(self.set_mode)
+
+        self.vrthread.joystick_changed.connect(self.droneCom.update_vel)
 
         self.node_manager.start()
 

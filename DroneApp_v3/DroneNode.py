@@ -1,17 +1,34 @@
 from rclpy.node import Node
 from sensor_msgs.msg import Image, CompressedImage
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseStamped, Twist
 from sensor_msgs.msg import BatteryState
 from mavros_msgs.msg import State
 from PyQt5.QtGui import QImage
+from rclpy.qos import QoSProfile, ReliabilityPolicy
+from mavros_msgs.srv import SetMode
 
 class DroneNode(Node):
     def __init__(self, drone_id, cam, comunicator, img_topic="image_raw"):
-        super().__init__(f"drone_node_{drone_id}")#, namespace=f"drone_{drone_id+1}")
+        super().__init__(f"drone_node_{drone_id}", namespace=f"mavros")
+        
+        qos = QoSProfile(
+            reliability=ReliabilityPolicy.BEST_EFFORT,
+            depth=10
+        )
         self.drone_id = drone_id
         self.comunicator = comunicator
         self.img_topic = img_topic
         self.cam = cam
+
+        self.manual = False
+
+        timer_period = 0.5
+
+        self.timer = self.create_timer(timer_period, self.timer_callback)
+
+        self.mode_client = self.create_client(SetMode, 'set_mode')
+
+        self.req = SetMode.Request()
         
         if cam:
             if img_topic.endswith("/compressed"):
@@ -33,14 +50,14 @@ class DroneNode(Node):
             PoseStamped,
             "local_position/pose",
             self._on_position,
-            10,
+            qos,
         )
 
         self.battery_sub = self.create_subscription(
             BatteryState,
             "battery",
             self._on_battery,
-            10,
+            qos,
         )
 
         self.state_sub = self.create_subscription(
@@ -49,6 +66,43 @@ class DroneNode(Node):
             self._on_state,
             10,
         )
+
+        self.vel_pub = self.create_publisher(
+            Twist,
+            "setpoint_velocity/cmd_vel_unstamped",
+            10,
+        )
+
+
+    def change_mode_request(self):
+
+        if(self.manual):
+            self.req.base_mode = 216
+        else:
+            self.req.base_mode = 192
+
+        return self.mode_client.call_async(self.req)
+
+    def timer_callback(self):
+        msg = Twist()
+
+        try:
+            lin = self.comunicator.get_linear_vel()
+            ang = self.comunicator.get_angular_vel()
+
+            msg.linear.x = float(lin) if lin is not None else 0.0
+            msg.linear.y = 0.0
+            msg.linear.z = 0.0
+
+            msg.angular.x = 0.0
+            msg.angular.y = 0.0
+            msg.angular.z = float(ang) if ang is not None else 0.0
+
+        except Exception as e:
+            self.get_logger().error(f"Velocity error: {e}")
+            return
+
+        self.vel_pub.publish(msg)
 
     def _on_compressed(self, msg):
         image = QImage.fromData(bytes(msg.data))

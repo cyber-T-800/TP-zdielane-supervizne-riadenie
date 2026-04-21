@@ -17,7 +17,7 @@ class MainWindow(QMainWindow):
         self.current_idx = 0
 
         self.setWindowTitle("DroneApp - Multi Drone Monitor")
-        self.setFixedSize(1800, 500)
+        self.setFixedSize(1800, 1000)
 
         self.num_of_panels = num_of_panels
 

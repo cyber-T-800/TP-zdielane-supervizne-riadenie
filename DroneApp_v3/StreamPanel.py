@@ -56,12 +56,12 @@ class StreamPanel(QFrame):
         self.setLayout(layout)
 
     def set_location(self, x, y, z):
-        self.location_label.setText(f"x = {x}, y = {y}, z = {z}")
+        self.location_label.setText(f"x = {x:.2f}, y = {y:.2f}, z = {z:.2f}")
         self.location_label.adjustSize()
 
     def set_battery(self, percentage, voltage):
         self.battery_label.setText(f"bat: {percentage} %")
-        self.battery_label_V.setText(f"bat_volt: {voltage} V")
+        self.battery_label_V.setText(f"bat_volt: {voltage:.2f} V")
         self.battery_label.adjustSize()
         self.battery_label_V.adjustSize()
 

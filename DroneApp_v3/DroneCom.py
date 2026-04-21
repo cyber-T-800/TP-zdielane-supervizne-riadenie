@@ -9,7 +9,18 @@ class DroneCom(QObject):
     state_recived = pyqtSignal(int, bool, bool, bool, bool, str)
     def __init__(self):
         super().__init__()
+        self.lin_vel = 0
+        self.ang_vel = 0
 
+    def update_vel(self, ang_vel, lin_vel):
+        self.ang_vel = ang_vel
+        self.lin_vel = lin_vel
+
+    def get_angular_vel(self):
+        return self.ang_vel
+
+    def get_linear_vel(self):
+        return self.lin_vel
 
     def handle_image(self, drone_id : int , qimage : QImage):
         self.frame_received.emit(drone_id, qimage)
