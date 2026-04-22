@@ -13,9 +13,13 @@ class DroneApp(MainWindow):
     def __init__(self, args):
         super().__init__()
 
-        self.num_of_drones = 1
+        self.num_of_drones = 3
         self.args = args
-        self.topics = self.args.inputs
+
+        if self.args.imgtopic:
+            self.topics = self.args.inputs
+        else:
+            self.topics = ["image_raw","image_raw","image_raw"]
 
         self.vrthread = VRInputThread()
 
@@ -60,6 +64,8 @@ class DroneApp(MainWindow):
         self.droneCom.state_recived.connect(self.set_mode)
 
         self.vrthread.joystick_changed.connect(self.droneCom.update_vel)
+        self.vrthread.select_next.connect(self.change_right)
+        self.vrthread.mode_next.connect(self.node_manager.nodes[self.get_current_index()].change_mode_request)
 
         self.node_manager.start()
 
@@ -78,14 +84,16 @@ def parse_args():
 
     parser.add_argument(
         "--gst",
-        action="store_true",
-        help="Use Gstreamer for camera instead ros topic"
+        nargs=3, 
+        type=int,
+        help="Use Gstreamer for camera instead ros topic, add ports example: python3 DroneAppv3 --gst 2222 2223 2224"
     )
 
     parser.add_argument(
-        "inputs",
+        "--imgtopic",
         nargs=3,
-        help="3 topics (if ros) OR 3 ports (if Gstreamer)"
+        type=str,
+        help="3 topics (defaut is image_raw), so /drone1/image_raw, /drone2/image_raw ..."
     )
 
     return parser.parse_args()

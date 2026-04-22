@@ -40,6 +40,9 @@ class MainWindow(QMainWindow):
 
         self.main_layout.addLayout(self.side_layout)
 
+    def get_current_index(self):
+        return self.current_idx
+
     def swap_panels(self, idx):
         if idx == self.current_idx or idx not in self.panels:
             return
@@ -55,10 +58,11 @@ class MainWindow(QMainWindow):
 
         self.current_idx = idx
 
-    #def change_left():
-        
+    def change_left(self):
+        self.swap_panels((self.current_idx + 1)%3)
 
-    #def change_right():
+    def change_right(self):
+        self.swap_panels((self.current_idx - 1)%3)
 
     def set_stream_image(self, idx, image):
         self.panels[idx].set_image(image)

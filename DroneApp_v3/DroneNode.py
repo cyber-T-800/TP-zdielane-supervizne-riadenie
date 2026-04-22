@@ -9,7 +9,7 @@ from mavros_msgs.srv import SetMode
 
 class DroneNode(Node):
     def __init__(self, drone_id, cam, comunicator, img_topic="image_raw"):
-        super().__init__(f"drone_node_{drone_id}", namespace=f"mavros")
+        super().__init__(f"drone_node_{drone_id}", namespace=f"drone_{drone_id+1}")
         
         qos = QoSProfile(
             reliability=ReliabilityPolicy.BEST_EFFORT,
@@ -81,7 +81,12 @@ class DroneNode(Node):
         else:
             self.req.base_mode = 192
 
-        return self.mode_client.call_async(self.req)
+        response = self.mode_client.call_async(self.req)
+
+        if (response):
+            self.manual = not self.manual
+        
+        return response
 
     def timer_callback(self):
         msg = Twist()

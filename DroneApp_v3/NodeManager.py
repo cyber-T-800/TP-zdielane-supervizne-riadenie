@@ -18,6 +18,7 @@ class NodeManager(QThread):
         self.nodes.append(node)
         self.executor.add_node(node)
 
+
     def run(self):
         while rclpy.ok() and self._running:
             self.executor.spin_once(timeout_sec=0.1)
