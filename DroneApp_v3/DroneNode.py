@@ -85,6 +85,9 @@ class DroneNode(Node):
 
         if (response):
             self.manual = not self.manual
+            print("mode change")
+        else:
+            print("cant change")
         
         return response
 

@@ -59,10 +59,12 @@ class MainWindow(QMainWindow):
         self.current_idx = idx
 
     def change_left(self):
-        self.swap_panels((self.current_idx + 1)%3)
+        self.swap_panels((self.current_idx - 1)%3)
 
     def change_right(self):
-        self.swap_panels((self.current_idx - 1)%3)
+        self.swap_panels((self.current_idx + 1)%3)
+        print("change right")
+        print(f"idx: {(self.current_idx + 1)%3}")
 
     def set_stream_image(self, idx, image):
         self.panels[idx].set_image(image)
