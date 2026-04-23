@@ -396,7 +396,7 @@
         </inertia>
       </inertial>
 
-      <sensor name="drone1_stereo_camera" type="camera">
+      <sensor name="drone1" type="camera">
         <always_on>1</always_on>
         <update_rate>30</update_rate>
         <visualize>true</visualize>
@@ -422,7 +422,7 @@
         <plugin name="drone1_camera_plugin" filename="libgazebo_ros_camera.so">
           <alwaysOn>true</alwaysOn>
           <updateRate>30.0</updateRate>
-          <cameraName>drone1_stereo_camera</cameraName>
+          <cameraName>drone1</cameraName>
           <imageTopicName>image_raw</imageTopicName>
           <cameraInfoTopicName>camera_info</cameraInfoTopicName>
           <frameName>drone1_stereo_cam_link</frameName>

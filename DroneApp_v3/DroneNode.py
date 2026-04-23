@@ -9,7 +9,7 @@ from mavros_msgs.srv import SetMode
 
 class DroneNode(Node):
     def __init__(self, drone_id, cam, comunicator, img_topic="image_raw"):
-        super().__init__(f"drone_node_{drone_id}", namespace=f"drone_{drone_id+1}")
+        super().__init__(f"drone_node_{drone_id}", namespace=f"drone{drone_id+1}")
         
         qos = QoSProfile(
             reliability=ReliabilityPolicy.BEST_EFFORT,
