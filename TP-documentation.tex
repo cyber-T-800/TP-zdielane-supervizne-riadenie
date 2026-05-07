@@ -1,0 +1,250 @@
+    \documentclass[a4paper,12pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[slovak]{babel}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{geometry}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning}
+
+\geometry{margin=2.5cm}
+
+\title{Supervízne riadenie autonómnej skupiny dronov vo virtuálnej realite}
+\author{Projektová dokumentácia}
+\date{\today}
+
+\begin{document}
+
+%------------------------------------------------
+% TITULNA STRANA
+%------------------------------------------------
+\begin{titlepage}
+\centering
+
+\vspace*{3cm}
+
+{\LARGE \textbf{Supervízne riadenie autonómnych dronov pomocou virtuálnej reality}}
+
+\vspace{1.5cm}
+
+{\Large Projektová dokumentácia}
+
+\vspace{2cm}
+
+\textbf{Autori:} Bc. Marek Malina, Bc. Tadeáš Kapina, Bc. Šimon Maco, Bc. Miroslav Beňušík, Bc. Ľuboš Valkovič, Bc. Boris Šupák, Bc. Martin Brandobur, Bc. Ivan Vanca
+
+\vfill
+
+\today
+
+\end{titlepage}
+
+%------------------------------------------------
+% OBSAH
+%------------------------------------------------
+\tableofcontents
+\newpage
+
+%------------------------------------------------
+\section{Analýza zadania a požiadaviek}
+
+Cieľom projektu je návrh a implementácia systému umožňujúceho supervízne riadenie skupiny autonómnych dronov pomocou virtuálnej reality (VR). 
+Drony vykonávajú autonómne inšpekčné misie vo vnútornom priestore, pričom operátor má možnosť sledovať ich stav a v prípade potreby 
+prevziať riadenie niektorého z dronov pomocou VR ovládačov.
+
+Na rozdiel od jednoduchých systémov určených pre jeden dron musí navrhované riešenie podporovať viacero dronov súčasne. 
+Každý dron vykonáva vlastnú autonómnu misiu, pričom operátor má možnosť sledovať ich činnosť a vybrať konkrétny dron, 
+do ktorého riadenia môže zasiahnuť. Tento prístup umožňuje efektívne monitorovanie a koordináciu viacerých autonómnych 
+robotických systémov v rovnakom prostredí.
+
+Hlavnou požiadavkou systému je bezpečný prechod medzi autonómnym a manuálnym režimom riadenia. 
+Operátor musí byť schopný zasiahnuť do riadenia bez destabilizácie letu a následne umožniť dronu 
+vrátiť sa späť do autonómneho režimu.
+\\
+
+\textbf{Hlavné požiadavky systému:}
+
+\begin{itemize}
+    \item autonómne vykonávanie misií viacerými dronmi
+    \item možnosť výberu konkrétneho drona zo zoznamu dostupných zariadení
+    \item zobrazenie telemetrických dát a video streamu z jednotlivých dronov
+    \item manuálne riadenie vybraného drona pomocou VR ovládačov
+    \item bezpečný návrat do autonómneho režimu po manuálnom zásahu operátora
+\end{itemize}
+
+Systém musí okrem zabezpečenia požadovanej funkcionality spĺňať aj viaceré prevádzkové a technické požiadavky. 
+Dôležitá je najmä spoľahlivá komunikácia medzi jednotlivými komponentmi systému, 
+nízka latencia pri prenose riadiacich príkazov a implementácia bezpečnostných mechanizmov, 
+ktoré minimalizujú riziko straty kontroly nad dronmi počas prevádzky.
+
+%------------------------------------------------
+\section{Návrh základnej architektúry systému}
+
+Celý systém je navrhnutý ako distribuovaná architektúra pozostávajúca z troch hlavných častí:
+
+\begin{itemize}
+\item autonómny systém dronov
+\item supervízna riadiaca vrstva
+\item používateľské rozhranie vo virtuálnej realite
+\end{itemize}
+
+Autonómny systém každého drona zabezpečuje stabilizáciu letu, lokalizáciu a vykonávanie plánovanej misie. 
+Supervízna vrstva koordinuje jednotlivé drony a umožňuje operátorovi sledovať ich stav. 
+Používateľské rozhranie vo VR poskytuje operátorovi prehľad o všetkých aktívnych dronoch a 
+umožňuje zasiahnuť do riadenia vybraného zariadenia.
+
+Komunikácia medzi jednotlivými komponentmi systému je realizovaná pomocou middleware ROS~2, 
+ktorý umožňuje modulárnu architektúru a jednoduchú integráciu jednotlivých komponentov.
+
+\begin{figure}[h!]
+\centering
+
+\begin{tikzpicture}[
+block/.style={draw, rectangle, rounded corners, align=center, minimum width=6cm, minimum height=1.4cm},
+line/.style={-Latex, thick},
+node distance=2cm
+]
+
+\node[block] (vr) {Používateľské rozhranie\\vo virtuálnej realite};
+
+\node[block, below=of vr] (supervisor) {Supervízna riadiaca vrstva};
+
+\node[block, below=of supervisor] (drone) {Autonómny systém dronov};
+
+% komunikácia VR <-> supervisor
+\draw[line] (vr) -- node[right]{riadiace príkazy} (supervisor);
+\draw[line] (supervisor) -- node[left]{telemetria, stav systému} (vr);
+
+% komunikácia supervisor <-> drony
+\draw[line] (supervisor) -- node[right]{príkazy misie} (drone);
+\draw[line] (drone) -- node[left]{telemetria, video stream} (supervisor);
+
+\end{tikzpicture}
+
+\caption{Bloková schéma architektúry navrhovaného systému}
+\label{fig:system_architecture}
+
+\end{figure}
+
+Na obrázku \ref{fig:system_architecture} je znázornená základná architektúra navrhovaného systému. 
+Používateľ komunikuje so systémom prostredníctvom rozhrania vo virtuálnej realite, ktoré umožňuje 
+vizualizáciu telemetrických údajov a manuálne riadenie vybraného drona. Supervízna riadiaca vrstva 
+zabezpečuje dohľad nad jednotlivými dronmi, výber aktívneho drona a prepínanie medzi autonómnym 
+a manuálnym režimom riadenia. Autonómny systém dronov vykonáva samotnú misiu a zabezpečuje 
+stabilizáciu letu, lokalizáciu a navigáciu jednotlivých dronov. Komunikácia medzi jednotlivými 
+vrstvami systému zahŕňa prenos riadiacich príkazov smerom k dronom a prenos telemetrie a video 
+streamu smerom k operátorovi.
+
+%------------------------------------------------
+\section{Návrh komunikačných rozhraní a ROS 2 uzlov}
+
+Systém je implementovaný pomocou architektúry ROS~2 založenej na uzloch (nodes), ktoré komunikujú pomocou tém (topics), služieb (services) a akcií (actions).
+
+Základné uzly systému sú:
+
+\begin{itemize}
+\item \textbf{Flight Interface Node} – komunikácia medzi ROS~2 a riadiacou jednotkou drona,
+\item \textbf{State Estimation Node} – výpočet polohy a orientácie drona,
+\item \textbf{Mission Executor Node} – vykonávanie plánovanej trajektórie,
+\item \textbf{Supervisor Node} – riadenie režimov systému,
+\item \textbf{VR Interface Node} – komunikácia medzi VR aplikáciou a ROS~2.
+\end{itemize}
+
+Medzi hlavné komunikačné témy patria napríklad:
+
+\begin{itemize}
+\item \texttt{/drone/state}
+\item \texttt{/drone/pose}
+\item \texttt{/drone/battery}
+\item \texttt{/drone/cmd\_vel}
+\item \texttt{/drone/mode}
+\end{itemize}
+
+Takáto architektúra umožňuje jednoduché rozšírenie systému o ďalšie drony alebo nové funkcionality.
+
+%------------------------------------------------
+\section{Návrh stavového automatu a handover mechanizmu}
+
+Riadenie režimov systému je realizované pomocou stavového automatu (Finite State Machine – FSM). 
+Tento automat zabezpečuje bezpečný prechod medzi jednotlivými režimami systému.
+
+Základné stavy systému sú:
+
+\begin{itemize}
+\item \textbf{Idle} – systém čaká na spustenie misie,
+\item \textbf{Autonomous Mission} – dron vykonáva autonómnu trajektóriu,
+\item \textbf{Manual Control} – operátor riadi dron pomocou VR ovládačov,
+\item \textbf{Hold} – dron udržiava stabilnú polohu,
+\item \textbf{Landing} – bezpečné pristátie.
+\end{itemize}
+
+Pri prechode z autonómneho do manuálneho režimu systém najprv aktivuje stabilizačný režim 
+(\textit{Hold}), čím sa zabezpečí plynulý prechod bez náhlych zmien trajektórie.
+
+Podobne pri návrate z manuálneho riadenia do autonómneho režimu systém vypočíta najbližší bod 
+trajektórie, od ktorého je možné bezpečne pokračovať v misii.
+
+%------------------------------------------------
+\section{Autonómna navigácia a vykonávanie misie}
+
+Autonómna navigácia drona je založená na vykonávaní preddefinovanej trajektórie pozostávajúcej z 
+niekoľkých waypointov. Každý waypoint predstavuje cieľovú polohu, ktorú má dron dosiahnuť.
+
+Počas letu systém priebežne vyhodnocuje aktuálnu polohu drona a generuje riadiace príkazy, 
+ktoré umožňujú sledovanie trajektórie.
+
+Pre lokalizáciu vo vnútornom priestore je možné použiť rôzne metódy, napríklad:
+
+\begin{itemize}
+\item vizuálnu odometriu,
+\item SLAM algoritmy,
+\item externé lokalizačné systémy.
+\end{itemize}
+
+%------------------------------------------------
+\section{VR používateľské rozhranie}
+
+Používateľské rozhranie vo virtuálnej realite umožňuje operátorovi interagovať so systémom 
+intuitívnym spôsobom. Operátor má k dispozícii vizuálne zobrazenie prostredia, telemetrické údaje 
+a video stream z kamery drona.
+
+Medzi hlavné funkcie VR rozhrania patria:
+
+\begin{itemize}
+\item výber dostupného drona zo zoznamu zariadení,
+\item zobrazenie aktuálneho stavu drona,
+\item vizualizácia video streamu,
+\item manuálne riadenie pomocou VR ovládačov,
+\item prepínanie medzi autonómnym a manuálnym režimom.
+\end{itemize}
+
+%------------------------------------------------
+\section{Bezpečnostné mechanizmy a failsafe}
+
+Bezpečnosť systému je kľúčovým aspektom návrhu. Systém musí byť schopný reagovať na rôzne 
+poruchové stavy, ako napríklad strata komunikácie alebo neplatné riadiace príkazy.
+
+Medzi hlavné bezpečnostné mechanizmy patria:
+
+\begin{itemize}
+\item watchdog kontrolujúci dostupnosť komunikácie,
+\item automatický prechod do stabilizačného režimu pri strate spojenia,
+\item obmedzenie maximálnej rýchlosti a zrýchlenia,
+\item núdzové pristátie pri kritickom stave batérie.
+\end{itemize}
+
+
+
+%------------------------------------------------
+\section{Implementácia na reálnom zariadení}
+
+%------------------------------------------------
+\section{Experimentálne overenie}
+
+%------------------------------------------------
+\section{Diskusia obmedzení a ďalší rozvoj}
+
+\end{document}
