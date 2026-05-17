@@ -1,5 +1,40 @@
 # Simple automatic mission
 A short guide on how to launch simple automatic mission (Gazebo + ArduPilot SITL + MAVROS + ROS2 mission node).
+## Quick launch using script
+
+Instead of manually opening the Gazebo, ArduPilot SITL and MAVROS terminals, you can use the prepared script.
+
+## Setup simulation using script
+
+### 1. Start simulation environment
+```
+cd ~/TP-zdielane-supervizne-riadenie
+chmod +x start_lrs.sh
+./start_lrs.sh
+```
+***NOTE:** If the workspace needs to be rebuilt after code changes, run:*
+```
+./start_lrs.sh --build
+```
+The script opens separate terminal windows for:
+- Gazebo world
+- ArduPilot SITL
+- MAVROS
+
+***NOTE:** The mission node is not started automatically. Start it manually in another terminal after MAVROS is connected.*
+
+## Start mission node manually (Terminal 4)
+
+### 2. Run mission node
+```
+cd ~/TP-zdielane-supervizne-riadenie/ros2_ws
+source /opt/ros/$ROS_DISTRO/setup.bash
+source install/setup.bash
+ros2 run lrs_mission lrs_mission_node
+```
+
+---
+
 ## Setup simulation
 
 ### 1. Launch Gazebo world (Terminal 1)

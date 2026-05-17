@@ -1,5 +1,61 @@
 # Swarm control
 A short guide on how to launch swarm mission (Gazebo + ArduPilot SITL + MAVROS + ROS2 mission node).
+
+## Quick launch using script
+
+Instead of manually opening the Gazebo, ArduPilot SITL and MAVROS terminals, you can use the prepared script.
+
+## Setup simulation using script
+
+### 1. Start simulation environment
+
+```
+cd ~/TP-zdielane-supervizne-riadenie
+chmod +x start_swarm.sh
+./start_swarm.sh
+```
+
+***NOTE:** If the workspace needs to be rebuilt after code changes, run:*
+
+```
+./start_swarm.sh --build
+```
+
+The script opens separate terminal windows for:
+- Gazebo runway world
+- ArduPilot SITL for drone1
+- ArduPilot SITL for drone2
+- ArduPilot SITL for drone3
+- MAVROS for drone1
+- MAVROS for drone2
+- MAVROS for drone3
+
+The swarm mission coordinator is not started automatically.
+
+## Start mission node manually (Terminal 8)
+
+### 2. Run swarm mission coordinator
+
+```
+cd ~/TP-zdielane-supervizne-riadenie/ros2_ws
+source /opt/ros/$ROS_DISTRO/setup.bash
+source install/setup.bash
+ros2 run swarm_mission swarm_coordinator_node --ros-args \
+  -p drone_names:="['drone1','drone2','drone3']" \
+  -p mission_paths:="['/home/lrs/TP-zdielane-supervizne-riadenie/ros2_ws/missions/drone1.csv','/home/lrs/TP-zdielane-supervizne-riadenie/ros2_ws/missions/drone2.csv','/home/lrs/TP-zdielane-supervizne-riadenie/ros2_ws/missions/drone3.csv']"
+```
+
+***NOTE:** You can check available drone nodes and topics with:*
+
+```
+ros2 node list | grep drone
+ros2 topic list | grep drone
+```
+
+---
+
+## Manual launch
+
 ## Setup simulation
 
 ### 1. Launch Gazebo world (Terminal 1)
