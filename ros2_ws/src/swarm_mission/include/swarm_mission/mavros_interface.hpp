@@ -5,6 +5,8 @@
 #include <mavros_msgs/srv/command_bool.hpp>
 #include <mavros_msgs/srv/set_mode.hpp>
 #include <mavros_msgs/srv/command_tol.hpp>
+#include <geometry_msgs/msg/twist.hpp>
+#include <geometry_msgs/msg/twist_stamped.hpp>
 
 namespace lrs_mission
 {
@@ -31,13 +33,15 @@ public:
   bool arm(bool value);
   bool takeoff(double alt);
   bool land();
-
+  void publish_velocity(const geometry_msgs::msg::Twist& cmd);
   const std::string& mavros_ns() const { return mavros_ns_; }
 
 private:
   void state_cb(const mavros_msgs::msg::State::SharedPtr msg);
   void pose_cb(const geometry_msgs::msg::PoseStamped::SharedPtr msg);
+  
 
+rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr vel_pub_;
   rclcpp::Node* node_;
   std::string mavros_ns_;
 
