@@ -2,6 +2,7 @@
 ros2_ws/build/
 ros2_ws/install/
 ros2_ws/log/
+ros2_ws/sim_logs/
 
 # VS Code local settings
 ros2_ws/.vscode/
