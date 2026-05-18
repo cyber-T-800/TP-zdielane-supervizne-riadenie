@@ -12,6 +12,9 @@ find_package(std_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
 find_package(mavros_msgs REQUIRED)
 find_package(tf2 REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(cv_bridge REQUIRED)
+find_package(OpenCV REQUIRED)
 
 include_directories(include)
 
@@ -55,9 +58,22 @@ target_include_directories(swarm_coordinator_node PUBLIC
   $<INSTALL_INTERFACE:include>
 )
 
+add_executable(gstreamer_image_bridge src/gstreamer_image_bridge.cpp)
+
+ament_target_dependencies(gstreamer_image_bridge
+  rclcpp
+  sensor_msgs
+  cv_bridge
+)
+
+target_link_libraries(gstreamer_image_bridge
+  ${OpenCV_LIBS}
+)
+
 install(TARGETS
   swarm_coordinator_node
   swarm_mission_node
+  gstreamer_image_bridge
   DESTINATION lib/${PROJECT_NAME}
 )
 
