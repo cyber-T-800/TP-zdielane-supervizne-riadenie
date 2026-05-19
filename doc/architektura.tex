@@ -52,10 +52,11 @@ Vyzuálne architektúra systému je znázornená na obrázku \ref{fig:architektu
 Systém sa skladáz z 2 aplikácií, ktoré zabezpečujú obojsmernú komunikáciu medzi dronmi a virtuálnou realitou.
 
 Prvou je backendová aplikácia bežica na ROS2, ktorá zabezpečuje kominikáciu s dronmi a automatické riadenie dronov 
-po predefinovaných trajektóriach. Takiež zabezpečuje bezpečnosť pri riadené dronov, vyhnutie sa kolíziám a konverziu
-videa z simulácie do GStreameru, ktorý následne posiela video do frontendovej aplikácie.
+po predefinovaných trajektóriach. Takiež zabezpečuje bezpečnosť pri riadené dronov, vyhnutie sa kolíziám a 
+pri simulačnom prostredí aj konverziu videa
+videa do GStreameru (reálny dron streamuje priamo cez GStreamer), ktorý následne posiela video do frontendovej aplikácie.
 
-Frontendová aplikácia využíva sa pripája na backendovú aplikáciu pomocou ROS2 bridge a GStreameru
+Frontendová aplikácia využíva sa pripája na backendovú aplikáciu pomocou ROS2 bridge cez WebSoket, čo je technológia, ktorá umožnuje prepájať ROS a ne-ROS aplikácie a GStreameru
 a zabezpečuje zobrazenie dronov a možnosť ovládania dronov. Na zobrazenie vo virtuálnej realite používa
 SteamVR a OpenVR, ktoré zabezpečujú prenos kontentu z obrazovky počítača do VR headsetu a umožnujú spracovať 
 používateľské vstupy z VR ovládačov.
@@ -70,24 +71,24 @@ Drony komunikujú s backendovou aplikáciou pomocou ROS topikov/servisov a v pr�
 \subsubsection*{Backend sa pripája na topiky:}
 
 \begin{itemize}
-    \item \textbf{/dronX/stop} - std\_msgs/msg/Bool - požiadavka na zastavenie misie a pristátie po dokončení aktuálneho cyklu
-    \item \textbf{/dronX/mavros/state} - mavros\_msgs/msg/State - aktuálny stav dronu (stav pripojenia, mód letu, armed stav)
-    \item \textbf{/dronX/mavros/local\_position/pose} - geometry\_msgs/msg/PoseStamped - aktuálna lokálna pozícia dronu
+    \item \textbf{/droneX/stop} - std\_msgs/msg/Bool - požiadavka na zastavenie misie a pristátie po dokončení aktuálneho cyklu
+    \item \textbf{/droneX/state} - mavros\_msgs/msg/State - aktuálny stav dronu (stav pripojenia, mód letu, armed stav)
+    \item \textbf{/droneX/local\_position/pose} - geometry\_msgs/msg/PoseStamped - aktuálna lokálna pozícia dronu
 \end{itemize}
 
 \subsubsection*{Ďalej publikuje topiky, na ktoré sa dron pripája:}
 
 \begin{itemize}
-    \item \textbf{/dronX/mavros/setpoint\_position/local} - geometry\_msgs/msg/PoseStamped - publikovanie cieľovej pozície počas navigácie medzi waypointmi
+    \item \textbf{/droneX/setpoint\_position/local} - geometry\_msgs/msg/PoseStamped - publikovanie cieľovej pozície počas navigácie medzi waypointmi
 \end{itemize}
 
 \subsubsection*{A na ovládanie drona využíva servisy:}
 
 \begin{itemize}
-    \item \textbf{/dronX/mavros/set\_mode} - mavros\_msgs/srv/SetMode - prepnutie letového režimu dronu (napr. GUIDED)
-    \item \textbf{/dronX/mavros/cmd/arming} - mavros\_msgs/srv/CommandBool - arm/disarm dronu
-    \item \textbf{/dronX/mavros/cmd/takeoff} - mavros\_msgs/srv/CommandTOL - vzlet dronu do zadanej výšky
-    \item \textbf{/dronX/mavros/cmd/land} - mavros\_msgs/srv/CommandTOL - pristátie dronu
+    \item \textbf{/droneX/set\_mode} - mavros\_msgs/srv/SetMode - prepnutie letového režimu dronu (napr. GUIDED)
+    \item \textbf{/droneX/cmd/arming} - mavros\_msgs/srv/CommandBool - arm/disarm dronu
+    \item \textbf{/droneX/cmd/takeoff} - mavros\_msgs/srv/CommandTOL - vzlet dronu do zadanej výšky
+    \item \textbf{/droneX/cmd/land} - mavros\_msgs/srv/CommandTOL - pristátie dronu
 \end{itemize}
 
 
@@ -100,10 +101,16 @@ Tento spôsob sme zvolili z dôvodu vyššej portability aplikácie, bez nutnost
 \subsubsection*{Front end sa prípája na topiky (pre každý dron zlášť):}
 
 \begin{itemize}
-    \item \textbf{/dronX/local\_position/pose} - geometry\_msgs/msg/PoseStamped - aktuálna pozícia robota
-    \item \textbf{/dronX/battery} - sensor\_msgs/msg/BatteryState - stav batérie robota
-    \item \textbf{/dronX/state} - mavros\_msgs/msg/State - aktuálny stav robota/dronu
-    \item \textbf{/dronX/setpoint\_velocity/cmd\_vel\_unstamped} - geometry\_msgs/msg/Twist - publikovanie rýchlostných príkazov
+    \item \textbf{/droneX/local\_position/pose} - geometry\_msgs/msg/PoseStamped - aktuálna pozícia robota
+    \item \textbf{/droneX/battery} - sensor\_msgs/msg/BatteryState - stav batérie robota
+    \item \textbf{/droneX/state} - mavros\_msgs/msg/State - aktuálny stav robota/dronu
+    \item \textbf{/droneX/supervisor/handover\_state} - std\_msgs/msg/String - aktuálny stav handover
+\end{itemize}
+
+\subsubsection*{Front end publikuje riadiaci topik:}
+
+\begin{itemize}
+    \item \textbf{/supervisor/manual\_cmd\_vel} - geometry\_msgs/msg/Twist - ovládanie smeru robota
 \end{itemize}
 
 \subsubsection*{Front end na ovládanie robota využíva servisy:} 
@@ -111,14 +118,13 @@ Tento spôsob sme zvolili z dôvodu vyššej portability aplikácie, bez nutnost
 \begin{itemize}
     \item \textbf{/supervisor/takeover\_request} - std\_msgs/msg/String - prevzatie kontroly
     \item \textbf{/supervisor/release\_request} - std\_msgs/msg/String - skončenie manuálneho režimu
-    \item \textbf{/supervisor/manual\_cmd\_vel} - geometry\_msgs/msg/Twist - ovládanie smeru robota
 \end{itemize}
 
 Video je stremované pomocou GStreamer-u. 
 
 \subsection{Frontendová aplikácia a VR headset}
 
-Frontendová aplikácia využíva SteamVR a OpenVR na komunikáciu s VR headsetom, ktoré zabezpečuje prenos obrazu z počítača
-a spätné čítanie vstupov z VR ovládačov, ktoré vieme následne v aplikácii spracovať a ovládať tak drona. 
+Frontendová aplikácia využíva SteamVR na komunikáciu s VR headsetom, ktoré zabezpečuje prenos obrazu z počítača
+a OpenVR na čítanie vstupov z VR ovládačov, ktoré vieme následne v aplikácii spracovať a ovládať tak drona. 
 
 \end{document}
