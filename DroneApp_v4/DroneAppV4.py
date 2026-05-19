@@ -61,14 +61,7 @@ def parse_args():
         "--gst",
         nargs=3, 
         type=int,
-        help="Use Gstreamer for camera instead ros topic, add ports example: python3 DroneAppv3 --gst 2222 2223 2224"
-    )
-
-    parser.add_argument(
-        "--imgtopic",
-        nargs=3,
-        type=str,
-        help="3 topics (defaut is image_raw), so /drone1/image_raw, /drone2/image_raw ..."
+        help="Use Gstreamer for camera instead ros topic, add ports example: python3 DroneAppvX --gst 2222 2223 2224"
     )
 
     return parser.parse_args()

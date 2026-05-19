@@ -15,7 +15,7 @@ class DroneCom(QObject):
 
         self.num_of_drones = num_of_drones
 
-        self.freq = 500
+        self.freq = 100
 
         self.is_publishing = False
 
@@ -56,22 +56,20 @@ class DroneCom(QObject):
             state_topic.subscribe(partial(self._state_callback, i))
             self.state_listeners.append(state_topic)
 
-        self.takeover_service = roslibpy.Service(self.client,'/supervisor/takeover_request','std_msgs/String')
-        self.release_service = roslibpy.Service(self.client, '/supervisor/release_request', 'std_msgs/String')
+        self.takeover= roslibpy.Topic(self.client,'/supervisor/takeover_request','std_msgs/String')
+        self.release = roslibpy.Topic(self.client, '/supervisor/release_request', 'std_msgs/String')
         self.cmd_vel_publisher = roslibpy.Topic(self.client, '/supervisor/manual_cmd_vel','geometry_msgs/Twist')
 
     def toggle_publishing(self, drone_id):
         if not self.is_publishing:
-            takeover_request = roslibpy.ServiceRequest({'data': f'drone{drone_id+1}'})
-            if self.takeover_service.call(takeover_request):
-                self.start_publishing()
-                self.is_publishing = True
+            self.takeover.publish(roslibpy.Message({'data': f'drone{drone_id+1}'}))
+            self.start_publishing()
+            self.is_publishing = True
         else:
-            release_request = roslibpy.ServiceRequest({'data': f'drone{drone_id+1}'})
-            if self.release_service.call(release_request):
-                self.stop_publishing()
-                self.is_publishing = False
-                self.null_vel()
+            self.release.publish(roslibpy.Message({'data': f'drone{drone_id+1}'}))
+            self.stop_publishing()
+            self.is_publishing = False
+            self.null_vel()
 
         return self.is_publishing
 
