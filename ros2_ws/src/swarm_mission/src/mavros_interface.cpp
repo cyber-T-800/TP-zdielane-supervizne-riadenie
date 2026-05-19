@@ -1,5 +1,5 @@
 #include "swarm_mission/mavros_interface.hpp"
-
+#include <geometry_msgs/msg/twist.hpp>
 using namespace std::chrono_literals;
 
 namespace lrs_mission
@@ -16,7 +16,8 @@ MavrosInterface::MavrosInterface(rclcpp::Node* node, const std::string& mavros_n
   qos_profile.depth = 1;
   qos_profile.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
   auto qos = rclcpp::QoS(rclcpp::QoSInitialization(qos_profile.history, 1), qos_profile);
-
+  vel_pub_ = node_->create_publisher<geometry_msgs::msg::TwistStamped>(
+    mavros_ns_ + "/setpoint_velocity/cmd_vel", 10);
   pose_sub_ = node_->create_subscription<geometry_msgs::msg::PoseStamped>(
       mavros_ns_ + "/local_position/pose",
       qos,
@@ -49,7 +50,14 @@ void MavrosInterface::pose_cb(const geometry_msgs::msg::PoseStamped::SharedPtr m
   have_pose_ = true;
   last_pose_time_ = node_->now();
 }
-
+void MavrosInterface::publish_velocity(const geometry_msgs::msg::Twist& cmd)
+{
+  geometry_msgs::msg::TwistStamped msg;
+  msg.header.stamp = node_->now();
+  msg.header.frame_id = "map";
+  msg.twist = cmd;
+  vel_pub_->publish(msg);
+}
 void MavrosInterface::publish_setpoint(const geometry_msgs::msg::PoseStamped& sp)
 {
   sp_pub_->publish(sp);

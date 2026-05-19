@@ -3,7 +3,7 @@
 <package format="3">
   <name>swarm_mission</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <description>Swarm mission control with handover support.</description>
   <maintainer email="lrs@todo.todo">lrs</maintainer>
   <license>TODO: License declaration</license>
 
@@ -11,8 +11,13 @@
 
   <depend>rclcpp</depend>
   <depend>geometry_msgs</depend>
+  <depend>std_msgs</depend>
   <depend>visualization_msgs</depend>
   <depend>mavros_msgs</depend>
+  <depend>tf2</depend>
+  <depend>sensor_msgs</depend>
+  <depend>cv_bridge</depend>
+  <depend>opencv</depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

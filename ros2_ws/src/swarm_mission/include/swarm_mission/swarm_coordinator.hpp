@@ -3,7 +3,8 @@
 #include <rclcpp/rclcpp.hpp>
 #include <vector>
 #include <string>
-
+#include <std_msgs/msg/string.hpp>
+#include <geometry_msgs/msg/twist.hpp>
 #include "swarm_mission/drone_context.hpp"
 
 namespace lrs_mission
@@ -52,6 +53,19 @@ private:
 
   std::vector<DroneContext> drones_;
   rclcpp::TimerBase::SharedPtr timer_;
+  rclcpp::Subscription<std_msgs::msg::String>::SharedPtr takeover_sub_;
+rclcpp::Subscription<std_msgs::msg::String>::SharedPtr release_sub_;
+rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr manual_cmd_sub_;
+
+std::string active_manual_drone_;
+double manual_cmd_timeout_sec_{0.5};
+
+void takeover_cb(const std_msgs::msg::String::SharedPtr msg);
+void release_cb(const std_msgs::msg::String::SharedPtr msg);
+void manual_cmd_cb(const geometry_msgs::msg::Twist::SharedPtr msg);
+
+DroneContext* find_drone(const std::string& name);
+void release_manual_control(DroneContext& d);
 };
 
 }  // namespace lrs_mission

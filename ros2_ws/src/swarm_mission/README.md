@@ -52,6 +52,36 @@ ros2 node list | grep drone
 ros2 topic list | grep drone
 ```
 
+## Stop simulation using script
+
+Instead of manually closing all opened terminal windows, you can use the prepared stop script.
+
+### 3. Stop all simulation processes
+
+Run the script from the root directory of the repository:
+
+```
+cd ~/TP-zdielane-supervizne-riadenie
+chmod +x stop_sim.sh
+./stop_sim.sh
+```
+
+The script stops running simulation processes such as:
+- Gazebo
+- ArduPilot SITL
+- MAVProxy
+- MAVROS
+- swarm mission coordinator
+
+It also tries to close terminal windows opened by the launch scripts.
+
+***NOTE:** To close terminal windows automatically by title, `wmctrl` is required. If it is not installed, run:*
+
+```
+sudo apt update
+sudo apt install -y wmctrl
+```
+
 ---
 
 ## Manual launch
@@ -109,4 +139,3 @@ ros2 run swarm_mission swarm_coordinator_node --ros-args \
 https://github.com/KocurMaros/LRS-FEI/
 
 https://drive.google.com/drive/folders/1QdG5tw1aGTgOuVNYAXl9BhDGObsHb8TW?usp=sharing
-

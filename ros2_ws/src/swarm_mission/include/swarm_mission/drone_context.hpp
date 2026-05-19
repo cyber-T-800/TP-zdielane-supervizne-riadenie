@@ -9,6 +9,7 @@
 
 #include "swarm_mission/mavros_interface.hpp"
 #include "swarm_mission/mission_types.hpp"
+#include <geometry_msgs/msg/twist.hpp>
 
 namespace lrs_mission
 {
@@ -26,6 +27,20 @@ struct DroneContext
     DONE,
     FAIL
   };
+
+
+  enum class ControlMode
+  {
+    AUTO_MISSION,
+    MANUAL_CONTROL
+  };
+
+  ControlMode control_mode{ControlMode::AUTO_MISSION};
+
+  geometry_msgs::msg::Twist manual_cmd_vel;
+  rclcpp::Time last_manual_cmd_time;
+  bool selected_for_manual{false};
+
 
   enum class LTPhase
   {

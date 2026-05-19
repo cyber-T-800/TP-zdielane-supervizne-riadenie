@@ -25,7 +25,20 @@ SwarmCoordinator::SwarmCoordinator()
           std::string(std::getenv("HOME")) + "/ros2_ws/missions/drone1.csv",
           std::string(std::getenv("HOME")) + "/ros2_ws/missions/drone2.csv",
           std::string(std::getenv("HOME")) + "/ros2_ws/missions/drone3.csv"});
+  this->declare_parameter<double>("manual_cmd_timeout_sec", manual_cmd_timeout_sec_);
+  manual_cmd_timeout_sec_ = this->get_parameter("manual_cmd_timeout_sec").as_double();
 
+  takeover_sub_ = this->create_subscription<std_msgs::msg::String>(
+      "/supervisor/takeover_request", 10,
+      std::bind(&SwarmCoordinator::takeover_cb, this, std::placeholders::_1));
+
+  release_sub_ = this->create_subscription<std_msgs::msg::String>(
+      "/supervisor/release_request", 10,
+      std::bind(&SwarmCoordinator::release_cb, this, std::placeholders::_1));
+
+  manual_cmd_sub_ = this->create_subscription<geometry_msgs::msg::Twist>(
+      "/supervisor/manual_cmd_vel", 10,
+      std::bind(&SwarmCoordinator::manual_cmd_cb, this, std::placeholders::_1));
   this->declare_parameter<double>("rate_hz", rate_hz_);
   this->declare_parameter<double>("soft_tol", soft_tol_);
   this->declare_parameter<double>("hard_tol", hard_tol_);
@@ -309,6 +322,12 @@ void SwarmCoordinator::step_item(DroneContext& d, const MissionItem& it)
   }
 
   if (cmd == "land") {
+    if (cycle_missions_) {
+      RCLCPP_INFO(get_logger(), "[%s] Skipping LAND because cycle_missions=true", d.name.c_str());
+      restart_drone_cycle(d);
+      return;
+    }
+
     if (!d.cmd_sent) {
       RCLCPP_INFO(get_logger(), "[%s] LAND", d.name.c_str());
       d.cmd_sent = d.mav->land();
@@ -369,7 +388,7 @@ void SwarmCoordinator::step_item(DroneContext& d, const MissionItem& it)
         d.lt_last_action = now();
       }
       if (d.mav->have_pose() && d.mav->current_pose().pose.position.z >= it.z - 0.15) {
-        d.mission_idx++;
+        advance_mission(d);
         if (d.mission_idx < d.mission.size()) start_item(d, d.mission[d.mission_idx]);
         else d.phase = DroneContext::Phase::DONE;
       }
@@ -394,29 +413,98 @@ void SwarmCoordinator::step_item(DroneContext& d, const MissionItem& it)
   }
 
   if (cmd == "yaw90") {
-    do_publish();
-    if (!d.yaw_initialized && d.mav->have_pose()) {
-      const double cyaw = yaw_from_quat(d.mav->current_pose().pose.orientation);
-      d.target_yaw = cyaw - M_PI_2;
-      d.sp.pose.orientation = quat_from_yaw(d.target_yaw);
-      d.yaw_initialized = true;
-    }
-    if (reached(d, it.x, it.y, it.z, it.tol)) {
-      d.mission_idx++;
-      if (d.mission_idx < d.mission.size()) start_item(d, d.mission[d.mission_idx]);
-      else d.phase = DroneContext::Phase::DONE;
-    }
-    return;
+  do_publish();
+  if (!d.yaw_initialized && d.mav->have_pose()) {
+    const double cyaw = yaw_from_quat(d.mav->current_pose().pose.orientation);
+    d.target_yaw = cyaw - M_PI_2;
+    d.sp.pose.orientation = quat_from_yaw(d.target_yaw);
+    d.yaw_initialized = true;
   }
+  if (reached(d, it.x, it.y, it.z, it.tol)) {
+    advance_mission(d);
+  }
+  return;
+}
 
   do_publish();
   if (reached(d, it.x, it.y, it.z, it.tol)) {
-    d.mission_idx++;
+    advance_mission(d);
     if (d.mission_idx < d.mission.size()) start_item(d, d.mission[d.mission_idx]);
     else d.phase = DroneContext::Phase::DONE;
   }
 }
+DroneContext* SwarmCoordinator::find_drone(const std::string& name)
+{
+  for (auto& d : drones_) {
+    if (d.name == name) return &d;
+  }
+  return nullptr;
+}
+void SwarmCoordinator::takeover_cb(const std_msgs::msg::String::SharedPtr msg)
+{
+  auto* d = find_drone(msg->data);
+  if (!d) {
+    RCLCPP_WARN(get_logger(), "Takeover request for unknown drone: %s", msg->data.c_str());
+    return;
+  }
 
+  if (!active_manual_drone_.empty() && active_manual_drone_ != d->name) {
+    auto* old = find_drone(active_manual_drone_);
+    if (old) {
+      release_manual_control(*old);
+    }
+  }
+
+  d->control_mode = DroneContext::ControlMode::MANUAL_CONTROL;
+  d->selected_for_manual = true;
+  d->manual_cmd_vel = geometry_msgs::msg::Twist{};
+  d->last_manual_cmd_time = now();
+  active_manual_drone_ = d->name;
+
+  if (d->mav->have_pose()) {
+    d->sp = d->mav->current_pose();
+    d->sp.header.frame_id = "map";
+  }
+
+  RCLCPP_INFO(get_logger(), "[%s] switched to MANUAL_CONTROL", d->name.c_str());
+}
+void SwarmCoordinator::release_manual_control(DroneContext& d)
+{
+  d.control_mode = DroneContext::ControlMode::AUTO_MISSION;
+  d.selected_for_manual = false;
+  d.manual_cmd_vel = geometry_msgs::msg::Twist{};
+
+  if (active_manual_drone_ == d.name) {
+    active_manual_drone_.clear();
+  }
+
+  if (d.mission_idx < d.mission.size()) {
+    start_item(d, d.mission[d.mission_idx]);
+  }
+
+  RCLCPP_INFO(get_logger(), "[%s] released back to AUTO_MISSION", d.name.c_str());
+}
+void SwarmCoordinator::release_cb(const std_msgs::msg::String::SharedPtr msg)
+{
+  auto* d = find_drone(msg->data);
+  if (!d) {
+    RCLCPP_WARN(get_logger(), "Release request for unknown drone: %s", msg->data.c_str());
+    return;
+  }
+
+  release_manual_control(*d);
+}
+void SwarmCoordinator::manual_cmd_cb(const geometry_msgs::msg::Twist::SharedPtr msg)
+{
+  if (active_manual_drone_.empty()) return;
+
+  auto* d = find_drone(active_manual_drone_);
+  if (!d) return;
+  if (d->control_mode != DroneContext::ControlMode::MANUAL_CONTROL) return;
+
+  d->manual_cmd_vel = *msg;
+  d->last_manual_cmd_time = now();
+}
 void SwarmCoordinator::step_drone(DroneContext& d)
 {
   using Phase = DroneContext::Phase;
@@ -435,6 +523,11 @@ void SwarmCoordinator::step_drone(DroneContext& d)
         init_drone_setpoint(d);
         d.stream_count = 0;
         d.phase = Phase::STREAM_SP;
+      } else {
+        RCLCPP_INFO_THROTTLE(
+            get_logger(), *get_clock(), 2000,
+            "[%s] waiting for local_position/pose on %s/local_position/pose",
+            d.name.c_str(), d.mavros_ns.c_str());
       }
       return;
 
@@ -471,9 +564,24 @@ void SwarmCoordinator::step_drone(DroneContext& d)
       }
       return;
 
-    case Phase::EXECUTE:
+     case Phase::EXECUTE:
       if (d.paused_for_collision) {
-        publish_setpoint(d);
+        if (d.control_mode == DroneContext::ControlMode::MANUAL_CONTROL) {
+          d.mav->publish_velocity(geometry_msgs::msg::Twist{});
+        } else {
+          publish_setpoint(d);
+        }
+        return;
+      }
+
+      if (d.control_mode == DroneContext::ControlMode::MANUAL_CONTROL) {
+        geometry_msgs::msg::Twist cmd = d.manual_cmd_vel;
+
+        if ((now() - d.last_manual_cmd_time).seconds() > manual_cmd_timeout_sec_) {
+          cmd = geometry_msgs::msg::Twist{};
+        }
+
+        d.mav->publish_velocity(cmd);
         return;
       }
 
@@ -498,18 +606,27 @@ void SwarmCoordinator::step_drone(DroneContext& d)
       return;
   }
 }
-
 bool SwarmCoordinator::any_pose_timeout() const
 {
   const auto tnow = now();
+
   for (const auto& d : drones_) {
-    if (d.phase == DroneContext::Phase::WAIT_CONN) continue;
-    if (!d.mav->have_pose()) return true;
+    using Phase = DroneContext::Phase;
+
+    if (d.phase == Phase::WAIT_CONN || d.phase == Phase::WAIT_POSE) {
+      continue;
+    }
+
+    if (!d.mav->have_pose()) {
+      continue;
+    }
+
     if ((tnow - d.mav->last_pose_time()).seconds() > pose_timeout_sec_) {
       RCLCPP_ERROR(get_logger(), "[%s] pose timeout", d.name.c_str());
       return true;
     }
   }
+
   return false;
 }
 
