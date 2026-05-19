@@ -6,7 +6,6 @@ from PyQt5.QtWidgets import QApplication
 from DroneCom import DroneCom
 from MainWindow import MainWindow
 from GSTReceiver import GSTReceiver
-from KeyboardController import KeyboardController
 
 class DroneApp(MainWindow):
     def __init__(self, args):

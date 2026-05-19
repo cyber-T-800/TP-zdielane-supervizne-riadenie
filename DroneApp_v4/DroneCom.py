@@ -34,7 +34,7 @@ class DroneCom(QObject):
         for i in range(self.num_of_drones):
             pos_topic = roslibpy.Topic(
                 self.client,
-                f'/drone_{i+1}/local_position/pose',
+                f'/drone{i+1}/local_position/pose',
                 'geometry_msgs/PoseStamped'
             )
             pos_topic.subscribe(partial(self._position_callback, i))
@@ -42,7 +42,7 @@ class DroneCom(QObject):
 
             bat_topic = roslibpy.Topic(
                 self.client,
-                f'/drone_{i+1}/battery',
+                f'/drone{i+1}/battery',
                 'sensor_msgs/BatteryState'
             )
             bat_topic.subscribe(partial(self._battery_callback, i))
@@ -50,7 +50,7 @@ class DroneCom(QObject):
 
             state_topic = roslibpy.Topic(
                 self.client,
-                f'/drone_{i+1}/state',
+                f'/drone{i+1}/state',
                 'mavros_msgs/State'
             )
             state_topic.subscribe(partial(self._state_callback, i))

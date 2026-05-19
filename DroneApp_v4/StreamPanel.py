@@ -1,5 +1,5 @@
 from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QImage, QPixmap
+from PyQt5.QtGui import  QPixmap
 from PyQt5.QtWidgets import (
     QFrame,
     QLabel,
