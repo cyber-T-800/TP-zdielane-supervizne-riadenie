@@ -13,9 +13,9 @@ set -Eeuo pipefail
 #   SWARM 7  - MAVROS drone3
 #   SWARM 8  - rosbridge websocket, port 9090
 #   SWARM 9  - swarm coordinator
-#   SWARM 10 - GStreamer drone1, /drone1/image_raw -> UDP 127.0.0.1:5601
-#   SWARM 11 - GStreamer drone2, /drone2/image_raw -> UDP 127.0.0.1:5602
-#   SWARM 12 - GStreamer drone3, /drone3/image_raw -> UDP 127.0.0.1:5603
+#   SWARM 10 - GStreamer drone1, /drone1/image_raw -> UDP 127.0.0.1:5601, 640x480@60fps
+#   SWARM 11 - GStreamer drone2, /drone2/image_raw -> UDP 127.0.0.1:5602, 640x480@60fps
+#   SWARM 12 - GStreamer drone3, /drone3/image_raw -> UDP 127.0.0.1:5603, 640x480@60fps
 #
 # IMPORTANT:
 #   sim_vehicle.py must be available globally in PATH.
@@ -403,13 +403,13 @@ if (( START_GSTREAMER == 1 )); then
   sleep "$GST_START_DELAY"
 
   open_terminal "SWARM 10 - GStreamer drone1" \
-    "cd '$WS_DIR' && $COMMON_SOURCE && ros2 run swarm_mission gstreamer_image_bridge --ros-args -p topic:=/drone1/image_raw -p host:=$GST_HOST -p port:=$GST_PORT1 2>&1 | tee '$LOG_DIR/gstreamer_drone1.log'"
+    "cd '$WS_DIR' && $COMMON_SOURCE && ros2 run swarm_mission gstreamer_image_bridge --ros-args -p topic:=/drone1/image_raw -p host:=$GST_HOST -p port:=$GST_PORT1 -p width:=640 -p height:=480 -p fps:=60 2>&1 | tee '$LOG_DIR/gstreamer_drone1.log'"
 
   open_terminal "SWARM 11 - GStreamer drone2" \
-    "cd '$WS_DIR' && $COMMON_SOURCE && ros2 run swarm_mission gstreamer_image_bridge --ros-args -p topic:=/drone2/image_raw -p host:=$GST_HOST -p port:=$GST_PORT2 2>&1 | tee '$LOG_DIR/gstreamer_drone2.log'"
+    "cd '$WS_DIR' && $COMMON_SOURCE && ros2 run swarm_mission gstreamer_image_bridge --ros-args -p topic:=/drone2/image_raw -p host:=$GST_HOST -p port:=$GST_PORT2 -p width:=640 -p height:=480 -p fps:=60 2>&1 | tee '$LOG_DIR/gstreamer_drone2.log'"
 
   open_terminal "SWARM 12 - GStreamer drone3" \
-    "cd '$WS_DIR' && $COMMON_SOURCE && ros2 run swarm_mission gstreamer_image_bridge --ros-args -p topic:=/drone3/image_raw -p host:=$GST_HOST -p port:=$GST_PORT3 2>&1 | tee '$LOG_DIR/gstreamer_drone3.log'"
+    "cd '$WS_DIR' && $COMMON_SOURCE && ros2 run swarm_mission gstreamer_image_bridge --ros-args -p topic:=/drone3/image_raw -p host:=$GST_HOST -p port:=$GST_PORT3 -p width:=640 -p height:=480 -p fps:=60 2>&1 | tee '$LOG_DIR/gstreamer_drone3.log'"
 fi
 
 echo
