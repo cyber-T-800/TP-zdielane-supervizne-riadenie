@@ -255,7 +255,7 @@ wait_for_ros_topic() {
   echo "Waiting for ROS topic: $topic"
 
   while (( elapsed < timeout_s )); do
-    if bash -lc "source '$ROS_SETUP' && source '$WS_DIR/install/setup.bash' && ros2 topic list 2>/dev/null | grep -qx '$topic'"; then
+    if bash -lc "source '$ROS_SETUP' && source '$WS_DIR/install/setup.bash' && tmp_file=\$(mktemp) && ros2 topic list 2>/dev/null > \$tmp_file && grep -qx '$topic' \$tmp_file; rc=\$?; rm -f \$tmp_file; exit \$rc"; then
       echo "Topic available: $topic"
       return 0
     fi
@@ -319,7 +319,7 @@ fi
 
 # Validate required ROS packages/executables after build.
 if (( START_ROSBRIDGE == 1 )); then
-  if ! bash -lc "source '$ROS_SETUP' && source '$WS_DIR/install/setup.bash' && ros2 pkg list | grep -qx 'rosbridge_server'"; then
+  if ! bash -lc "source '$ROS_SETUP' && source '$WS_DIR/install/setup.bash' && ros2 pkg prefix rosbridge_server >/dev/null 2>&1"; then
     echo "Error: ROS package 'rosbridge_server' not found."
     echo "Install it with:"
     echo "  sudo apt update"
@@ -329,7 +329,7 @@ if (( START_ROSBRIDGE == 1 )); then
 fi
 
 if (( START_GSTREAMER == 1 )); then
-  if ! bash -lc "source '$ROS_SETUP' && source '$WS_DIR/install/setup.bash' && ros2 pkg executables swarm_mission | grep -q 'gstreamer_image_bridge'"; then
+  if ! bash -lc "source '$ROS_SETUP' && source '$WS_DIR/install/setup.bash' && ros2 pkg executables swarm_mission 2>/dev/null | awk '{print \$2}' | grep -qx 'gstreamer_image_bridge'"; then
     echo "Error: executable 'gstreamer_image_bridge' not found in package 'swarm_mission'."
     echo "Try rebuilding:"
     echo "  cd '$WS_DIR'"
