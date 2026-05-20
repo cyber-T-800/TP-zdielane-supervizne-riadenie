@@ -13,9 +13,9 @@ set -Eeuo pipefail
 #   SWARM 7  - MAVROS drone3
 #   SWARM 8  - rosbridge websocket, port 9090
 #   SWARM 9  - swarm coordinator
-#   SWARM 10 - GStreamer drone1, /drone1/image_raw -> UDP 127.0.0.1:5601, 640x480@60fps
-#   SWARM 11 - GStreamer drone2, /drone2/image_raw -> UDP 127.0.0.1:5602, 640x480@60fps
-#   SWARM 12 - GStreamer drone3, /drone3/image_raw -> UDP 127.0.0.1:5603, 640x480@60fps
+#   SWARM 10 - GStreamer drone1, /drone1/image_raw -> UDP 127.0.0.1:2223, 640x480@60fps
+#   SWARM 11 - GStreamer drone2, /drone2/image_raw -> UDP 127.0.0.1:2224, 640x480@60fps
+#   SWARM 12 - GStreamer drone3, /drone3/image_raw -> UDP 127.0.0.1:2225, 640x480@60fps
 #
 # IMPORTANT:
 #   sim_vehicle.py must be available globally in PATH.
@@ -41,9 +41,9 @@ MAVROS_START_DELAY=25
 GST_START_DELAY=5
 ROSBRIDGE_PORT=9090
 GST_HOST="127.0.0.1"
-GST_PORT1=5601
-GST_PORT2=5602
-GST_PORT3=5603
+GST_PORT1=2223
+GST_PORT2=2224
+GST_PORT3=2225
 
 START_ROSBRIDGE=1
 START_COORDINATOR=1
@@ -131,9 +131,9 @@ Optional:
   --drone3-fcu "udp://:14580@"
   --rosbridge-port 9090
   --gst-host 127.0.0.1
-  --gst-port1 5601
-  --gst-port2 5602
-  --gst-port3 5603
+  --gst-port1 2223
+  --gst-port2 2224
+  --gst-port3 2225
   --no-rosbridge
   --no-coordinator
   --no-gstreamer
@@ -212,6 +212,26 @@ open_terminal() {
       xterm -T "$title" -e bash -lc "$cmd; echo; echo '[$title] process finished. You can close this terminal.'; exec bash" &
       ;;
   esac
+}
+
+wait_for_gazebo() {
+  local timeout_s="${1:-60}"
+  local elapsed=0
+
+  echo "Waiting for Gazebo process..."
+
+  while (( elapsed < timeout_s )); do
+    if pgrep -f "gzserver|gazebo" >/dev/null 2>&1; then
+      echo "Gazebo process detected."
+      sleep 5
+      return 0
+    fi
+
+    sleep 1
+    elapsed=$((elapsed + 1))
+  done
+
+  echo "Warning: Gazebo process was not detected within ${timeout_s}s. Continuing anyway."
 }
 
 wait_for_sitl_ekf_origin() {
@@ -357,8 +377,7 @@ COMMON_SOURCE="source '$ROS_SETUP' && source '$WS_DIR/install/setup.bash'"
 open_terminal "SWARM 1 - Gazebo runway world" \
   "cd '$REPO_DIR' && bash '$RUNWAY_SCRIPT' 2>&1 | tee '$LOG_DIR/gazebo_runway.log'"
 
-echo "Waiting 8 seconds for Gazebo..."
-sleep 8
+wait_for_gazebo 60
 
 open_terminal "SWARM 2 - SITL drone1" \
   "cd '$ARDUPILOT_DIR/ArduCopter' && sim_vehicle.py -v ArduCopter -f gazebo-iris --console -I1 2>&1 | tee '$SITL1_LOG'"
