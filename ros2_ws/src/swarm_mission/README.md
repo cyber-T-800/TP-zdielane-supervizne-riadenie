@@ -1,62 +1,43 @@
 # Swarm control
+
 A short guide on how to launch swarm mission (Gazebo + ArduPilot SITL + MAVROS + ROS2 mission node).
 
 ## Quick launch using script
 
-Instead of manually opening the Gazebo, ArduPilot SITL and MAVROS terminals, you can use the prepared script.
+Instead of manually opening all required terminals, you can use the prepared script.
 
-## Setup simulation using script
+### 1. Start simulation
 
-### 1. Start simulation environment
+Run the script from the root directory of the repository. The first run should include the `--build` parameter:
 
 ```
 cd ~/TP-zdielane-supervizne-riadenie
 chmod +x start_swarm.sh
-./start_swarm.sh
-```
-
-***NOTE:** If the workspace needs to be rebuilt after code changes, run:*
-
-```
 ./start_swarm.sh --build
+```
+
+***NOTE:** If the workspace is already built and no code changes were made, the `--build` parameter is not required. In that case, run:*
+
+```
+./start_swarm.sh
 ```
 
 The script opens separate terminal windows for:
 - Gazebo runway world
-- ArduPilot SITL for drone1
-- ArduPilot SITL for drone2
-- ArduPilot SITL for drone3
-- MAVROS for drone1
-- MAVROS for drone2
-- MAVROS for drone3
+- 3x ArduPilot SITL
+- 3x MAVROS
+- rosbridge websocket on port `9090`
+- swarm coordinator
+- 3x GStreamer video bridge
 
-The swarm mission coordinator is not started automatically.
+The swarm mission coordinator is started automatically by the script.
 
-## Start mission node manually (Terminal 8)
-
-### 2. Run swarm mission coordinator
-
-```
-cd ~/TP-zdielane-supervizne-riadenie/ros2_ws
-source /opt/ros/$ROS_DISTRO/setup.bash
-source install/setup.bash
-ros2 run swarm_mission swarm_coordinator_node --ros-args \
-  -p drone_names:="['drone1','drone2','drone3']" \
-  -p mission_paths:="['/home/lrs/TP-zdielane-supervizne-riadenie/ros2_ws/missions/drone1.csv','/home/lrs/TP-zdielane-supervizne-riadenie/ros2_ws/missions/drone2.csv','/home/lrs/TP-zdielane-supervizne-riadenie/ros2_ws/missions/drone3.csv']"
-```
-
-***NOTE:** You can check available drone nodes and topics with:*
-
-```
-ros2 node list | grep drone
-ros2 topic list | grep drone
-```
 
 ## Stop simulation using script
 
 Instead of manually closing all opened terminal windows, you can use the prepared stop script.
 
-### 3. Stop all simulation processes
+### 2. Stop all simulation processes
 
 Run the script from the root directory of the repository:
 
@@ -66,14 +47,7 @@ chmod +x stop_sim.sh
 ./stop_sim.sh
 ```
 
-The script stops running simulation processes such as:
-- Gazebo
-- ArduPilot SITL
-- MAVProxy
-- MAVROS
-- swarm mission coordinator
-
-It also tries to close terminal windows opened by the launch scripts.
+The script stops Gazebo, ArduPilot SITL, MAVProxy, MAVROS, rosbridge, swarm coordinator, GStreamer bridges and opened terminal windows.
 
 ***NOTE:** To close terminal windows automatically by title, `wmctrl` is required. If it is not installed, run:*
 
