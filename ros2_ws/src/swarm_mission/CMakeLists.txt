@@ -58,7 +58,9 @@ target_include_directories(swarm_coordinator_node PUBLIC
   $<INSTALL_INTERFACE:include>
 )
 
-add_executable(gstreamer_image_bridge src/gstreamer_image_bridge.cpp)
+add_executable(gstreamer_image_bridge
+  src/gstreamer_image_bridge.cpp
+)
 
 ament_target_dependencies(gstreamer_image_bridge
   rclcpp
