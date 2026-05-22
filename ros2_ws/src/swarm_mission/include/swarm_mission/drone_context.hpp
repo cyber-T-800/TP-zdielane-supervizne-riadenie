@@ -12,6 +12,8 @@
 #include "swarm_mission/mavros_interface.hpp"
 #include "swarm_mission/mission_types.hpp"
 
+#include <std_msgs/msg/string.hpp>
+
 namespace lrs_mission
 {
 
@@ -66,7 +68,8 @@ struct DroneContext
   rclcpp::Time last_arm_req;
   rclcpp::Time lt_last_action;
   rclcpp::Time last_manual_cmd_time;
-
+  rclcpp::Publisher<std_msgs::msg::String>::SharedPtr handover_state_pub;
+  
   int stream_count{0};
   int lt_takeoff_tries{0};
 

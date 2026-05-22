@@ -28,7 +28,8 @@ private:
   void start_item(DroneContext& d, const MissionItem& it);
   void step_item(DroneContext& d, const MissionItem& it);
   void step_drone(DroneContext& d);
-
+  static std::string control_mode_to_string(DroneContext::ControlMode mode);
+  void publish_handover_state(DroneContext& d);
   bool should_switch_to_manual_at_checkpoint(const DroneContext& d) const;
   void switch_to_manual_control(DroneContext& d);
   void switch_to_auto_mission(DroneContext& d);

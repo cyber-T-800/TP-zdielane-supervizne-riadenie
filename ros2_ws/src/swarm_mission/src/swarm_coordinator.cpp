@@ -14,6 +14,33 @@ using namespace std::chrono_literals;
 namespace lrs_mission
 {
 
+std::string SwarmCoordinator::control_mode_to_string(DroneContext::ControlMode mode)
+{
+  switch (mode) {
+    case DroneContext::ControlMode::AUTO_MISSION:
+      return "AUTO_MISSION";
+    case DroneContext::ControlMode::HOLD_FOR_HANDOVER:
+      return "HOLD_FOR_HANDOVER";
+    case DroneContext::ControlMode::MANUAL_CONTROL:
+      return "MANUAL_CONTROL";
+    case DroneContext::ControlMode::RETURN_TO_MISSION:
+      return "RETURN_TO_MISSION";
+  }
+
+  return "UNKNOWN";
+}
+
+void SwarmCoordinator::publish_handover_state(DroneContext& d)
+{
+  if (!d.handover_state_pub) {
+    return;
+  }
+
+  std_msgs::msg::String msg;
+  msg.data = control_mode_to_string(d.control_mode);
+  d.handover_state_pub->publish(msg);
+}
+
 SwarmCoordinator::SwarmCoordinator()
 : rclcpp::Node("swarm_coordinator_node")
 {
@@ -89,6 +116,8 @@ SwarmCoordinator::SwarmCoordinator()
     d.mavros_ns = "/" + d.name;
     d.mission_path = mission_paths_[i];
     d.mav = std::make_shared<MavrosInterface>(this, d.mavros_ns);
+    d.handover_state_pub = this->create_publisher<std_msgs::msg::String>(
+        "/" + d.name + "/supervisor/handover_state", 10);
     d.mission = MissionLoader::load_from_file(d.mission_path);
     d.last_mode_req = now();
     d.last_arm_req = now();
@@ -204,6 +233,7 @@ void SwarmCoordinator::switch_to_manual_control(DroneContext& d)
     d.sp.header.frame_id = "map";
   }
 
+  publish_handover_state(d);
   RCLCPP_INFO(get_logger(), "[%s] MANUAL_CONTROL", d.name.c_str());
 }
 
@@ -222,6 +252,7 @@ void SwarmCoordinator::switch_to_auto_mission(DroneContext& d)
     start_item(d, d.mission[d.mission_idx]);
   }
 
+  publish_handover_state(d);
   RCLCPP_INFO(get_logger(), "[%s] AUTO_MISSION", d.name.c_str());
 }
 
@@ -326,6 +357,7 @@ void SwarmCoordinator::takeover_cb(const std_msgs::msg::String::SharedPtr msg)
   d->selected_for_manual = true;
   active_manual_drone_ = d->name;
 
+  publish_handover_state(*d);
   RCLCPP_INFO(get_logger(), "[%s] HOLD_FOR_HANDOVER", d->name.c_str());
 }
 
@@ -335,6 +367,7 @@ void SwarmCoordinator::release_manual_control(DroneContext& d)
   d.pending_release = true;
   d.manual_cmd_vel = geometry_msgs::msg::Twist{};
 
+  publish_handover_state(d);
   RCLCPP_INFO(get_logger(), "[%s] RETURN_TO_MISSION", d.name.c_str());
 }
 
@@ -653,6 +686,7 @@ void SwarmCoordinator::step_drone(DroneContext& d)
         start_item(d, d.mission[d.mission_idx]);
         d.phase = Phase::EXECUTE;
         d.control_mode = DroneContext::ControlMode::AUTO_MISSION;
+        publish_handover_state(d);
         RCLCPP_INFO(get_logger(), "[%s] AUTO_MISSION", d.name.c_str());
       }
       return;
@@ -755,6 +789,7 @@ void SwarmCoordinator::tick()
 
   for (auto& d : drones_) {
     step_drone(d);
+    publish_handover_state(d);
   }
 
   if (all_done()) {
