@@ -62,7 +62,7 @@ private:
   double rate_hz_{20.0};
   double soft_tol_{0.6};
   double hard_tol_{0.25};
-  double pose_timeout_sec_{1.0};
+  double pose_timeout_sec_{5.0};
 
   double collision_stop_dist_{0.5};
   double collision_resume_dist_{0.8};
