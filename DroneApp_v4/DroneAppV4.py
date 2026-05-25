@@ -32,7 +32,11 @@ class DroneApp(MainWindow):
             r.start()
 
 
-        self.droneCom = DroneCom(self.num_of_drones)
+        self.droneCom = DroneCom(
+            self.num_of_drones,
+            ros_host=args.ros_host,
+            ros_port=args.ros_port
+        )
        
         self.droneCom.battery_recived.connect(self.set_battery)
         self.droneCom.position_recived.connect(self.set_location)
@@ -62,6 +66,17 @@ def parse_args():
         nargs=3, 
         type=int,
         help="Use Gstreamer for camera instead ros topic, add ports example: python3 DroneAppvX --gst 2222 2223 2224"
+    )
+    parser.add_argument(
+        "--ros-host",
+        default="192.168.0.190",
+        help="ROS bridge host/IP address"
+    )
+    parser.add_argument(
+        "--ros-port",
+        default=9090,
+        type=int,
+        help="ROS bridge websocket port"
     )
 
     return parser.parse_args()
