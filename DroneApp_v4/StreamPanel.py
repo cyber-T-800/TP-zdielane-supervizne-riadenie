@@ -26,6 +26,7 @@ class StreamPanel(QFrame):
         self.image_label.setAlignment(Qt.AlignCenter)
         self.image_label.setStyleSheet("background: #101010; color: #999;font-size: 24pt;" )
         self.image_label.setText("No image")
+
         
         self.location_label = QLabel("-|-", self.container)
 
@@ -70,21 +71,9 @@ class StreamPanel(QFrame):
         self.fps_label.setText(f"{fps} FPS")
         self.fps_label.adjustSize()
 
-    def set_mode(self, connected, armed, guided, manual_input, mode):
-        parts = []
+    def set_mode(self, mode):
 
-        if connected:
-            parts.append("connected")
-        if armed:
-            parts.append("armed")
-        if guided:
-            parts.append("guided")
-        if manual_input:
-            parts.append("manual_input")
-
-        parts.append(mode)
-
-        self.mode_label.setText(", ".join(parts))
+        self.mode_label.setText(mode)
         self.mode_label.adjustSize()
 
     def set_image(self, image):

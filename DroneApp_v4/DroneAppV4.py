@@ -16,6 +16,9 @@ class DroneApp(MainWindow):
 
         ports = [2223,2224,2225]
 
+        if self.args.ports:
+            ports = self.args.inputs
+
         self.setup_main_window(num_of_panels=self.num_of_drones)
 
         self.receivers = []
@@ -55,13 +58,13 @@ class DroneApp(MainWindow):
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Run drone app for supervising drones with Ros or Gstreamer")
+    parser = argparse.ArgumentParser(description="Run drone app for supervising drones")
 
     parser.add_argument(
-        "--gst",
+        "--ports",
         nargs=3, 
         type=int,
-        help="Use Gstreamer for camera instead ros topic, add ports example: python3 DroneAppvX --gst 2222 2223 2224"
+        help="change ports(default: 2223,2224,2225) example: python3 DroneAppvX --ports 2222 2223 2224"
     )
 
     return parser.parse_args()

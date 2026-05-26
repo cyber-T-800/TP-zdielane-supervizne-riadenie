@@ -8,7 +8,7 @@ class DroneCom(QObject):
     frame_received = pyqtSignal(int, QImage)
     position_recived = pyqtSignal(int, float, float, float)
     battery_recived = pyqtSignal(int, float, float)
-    state_recived = pyqtSignal(int, bool, bool, bool, bool, str)
+    state_recived = pyqtSignal(int, str)
 
     def __init__(self, num_of_drones):
         super().__init__()
@@ -50,8 +50,8 @@ class DroneCom(QObject):
 
             state_topic = roslibpy.Topic(
                 self.client,
-                f'/drone{i+1}/state',
-                'mavros_msgs/State'
+                f'/drone{i+1}/supervisor/handover_state',
+                'std_msgs/String'
             )
             state_topic.subscribe(partial(self._state_callback, i))
             self.state_listeners.append(state_topic)
@@ -84,6 +84,7 @@ class DroneCom(QObject):
             'linear': {'x': self.x, 'y': self.y, 'z': self.z},
             'angular': {'x': self.a_x, 'y': self.a_y, 'z': self.a_z}
         }
+
         self.cmd_vel_publisher.publish(msg)
 
     def update_vel(self, x, y, z, a_x, a_y, a_z):
@@ -116,11 +117,7 @@ class DroneCom(QObject):
     def _state_callback(self, drone_id, message):
         self.handle_state(
             drone_id,
-            message.get('connected', False),
-            message.get('armed', False),
-            message.get('guided', False),
-            message.get('manual_input', False),
-            message.get('mode', '')
+            message.get('data', '')
         )
 
 
@@ -130,8 +127,7 @@ class DroneCom(QObject):
     def handle_battery(self, drone_id: int, percentage: float, voltage: float):
         self.battery_recived.emit(drone_id, percentage, voltage)
 
-    def handle_state(self, drone_id: int, connected: bool, armed: bool,
-                     guided: bool, manual_input: bool, mode: str):
+    def handle_state(self, drone_id: int, mode: str):
         self.state_recived.emit(
-            drone_id, connected, armed, guided, manual_input, mode
+            drone_id, mode
         )

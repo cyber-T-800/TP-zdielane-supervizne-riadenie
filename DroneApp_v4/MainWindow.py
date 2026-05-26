@@ -1,6 +1,8 @@
 from StreamPanel import StreamPanel
 from KeyboardController import KeyboardController
 
+from MapPanel import MapPanel
+
 from PyQt5.QtWidgets import (
     QHBoxLayout,
     QMainWindow,
@@ -41,7 +43,10 @@ class MainWindow(QMainWindow):
         for i in range(1, self.num_of_panels):
             self.side_layout.addWidget(self.panels[i])
 
+        self.map = MapPanel()
+
         self.main_layout.addLayout(self.side_layout)
+        self.main_layout.addWidget(self.map)
 
     def get_current_index(self):
         return self.current_idx
@@ -76,6 +81,7 @@ class MainWindow(QMainWindow):
 
     def set_location(self,idx, x, y, z):
         self.panels[idx].set_location(x, y, z)
+        self.map(idx, x, y)
     
-    def set_mode(self,idx, connected, armed, guided, manual_input, mode):
-        self.panels[idx].set_mode(connected, armed, guided, manual_input, mode)
+    def set_mode(self,idx, mode):
+        self.panels[idx].set_mode(mode)
