@@ -1,43 +1,167 @@
 # Swarm control
 
-A short guide on how to launch swarm mission (Gazebo + ArduPilot SITL + MAVROS + ROS2 mission node).
+A short guide on how to launch the swarm stack either in simulation or with real drones.
+
+The automatic launch script can start:
+- Gazebo runway world
+- ArduPilot SITL, only in simulation mode
+- MAVROS for selected drones
+- rosbridge websocket
+- swarm coordinator
+- GStreamer video bridge for selected drones
+
+The number of drones can be selected with `--drones 1`, `--drones 2` or `--drones 3`.
 
 ## Quick launch using script
 
 Instead of manually opening all required terminals, you can use the prepared script.
 
-### 1. Start simulation
+### 1. Simulation mode
+
+Simulation mode starts Gazebo, ArduPilot SITL, MAVROS, rosbridge, swarm coordinator and GStreamer video bridges.
 
 Run the script from the root directory of the repository. The first run should include the `--build` parameter:
 
 ```
 cd ~/TP-zdielane-supervizne-riadenie
 chmod +x start_swarm.sh
-./start_swarm.sh --build
+./start_swarm.sh --build --mode sim --drones 3
 ```
 
 ***NOTE:** If the workspace is already built and no code changes were made, the `--build` parameter is not required. In that case, run:*
 
 ```
-./start_swarm.sh
+./start_swarm.sh --mode sim --drones 3
 ```
 
-The script opens separate terminal windows for:
-- Gazebo runway world
-- 3x ArduPilot SITL
-- 3x MAVROS
-- rosbridge websocket on port `9090`
-- swarm coordinator
-- 3x GStreamer video bridge
+For a simulation test with only one drone, run:
 
-The swarm mission coordinator is started automatically by the script.
+```
+./start_swarm.sh --mode sim --drones 1
+```
 
+### 2. Real drone mode
+
+Real drone mode does **not** start Gazebo, ArduPilot SITL or MAVProxy. It only starts MAVROS connected to the real autopilot, rosbridge, swarm coordinator and GStreamer bridge according to the selected number of drones.
+
+For one real drone connected through USB, run:
+
+```
+cd ~/TP-zdielane-supervizne-riadenie
+chmod +x start_swarm.sh
+./start_swarm.sh --build --mode real --drones 1 --drone1-fcu "/dev/ttyACM0:57600"
+```
+
+***NOTE:** If the workspace is already built and no code changes were made, run without `--build`:*
+
+```
+./start_swarm.sh --mode real --drones 1 --drone1-fcu "/dev/ttyACM0:57600"
+```
+
+If the real drone is connected through another serial device, use for example:
+
+```
+./start_swarm.sh --mode real --drones 1 --drone1-fcu "/dev/ttyUSB0:57600"
+```
+
+If the real drone is connected through UDP telemetry, use for example:
+
+```
+./start_swarm.sh --mode real --drones 1 --drone1-fcu "udp://:14550@"
+```
+
+***SAFETY NOTE:** For real-drone testing, remove propellers or secure the drone before starting control nodes. The script does not start Gazebo or SITL in real mode.*
+
+### 3. Drone count
+
+The number of active drones is selected with:
+
+```
+--drones 1
+--drones 2
+--drones 3
+```
+
+Examples:
+
+```
+./start_swarm.sh --mode sim --drones 1
+./start_swarm.sh --mode sim --drones 2
+./start_swarm.sh --mode sim --drones 3
+```
+
+For real drones, provide FCU URLs for every selected drone:
+
+```
+./start_swarm.sh --mode real --drones 2 \
+  --drone1-fcu "/dev/ttyACM0:57600" \
+  --drone2-fcu "/dev/ttyUSB0:57600"
+```
+
+### 4. Optional arguments
+
+Disable rosbridge:
+
+```
+./start_swarm.sh --mode sim --drones 3 --no-rosbridge
+```
+
+Disable swarm coordinator:
+
+```
+./start_swarm.sh --mode sim --drones 3 --no-coordinator
+```
+
+Disable GStreamer video bridges:
+
+```
+./start_swarm.sh --mode sim --drones 3 --no-gstreamer
+```
+
+Start monitor terminal:
+
+```
+./start_swarm.sh --mode sim --drones 3 --monitor
+```
+
+Change GStreamer target host, for example when the application runs on another computer:
+
+```
+./start_swarm.sh --mode sim --drones 3 --gst-host 192.168.1.100
+```
+
+### 5. Frontend endpoints
+
+By default, rosbridge is available at:
+
+```
+ws://localhost:9090
+```
+
+Default GStreamer video streams:
+
+```
+drone1: UDP 127.0.0.1:2223
+drone2: UDP 127.0.0.1:2224
+drone3: UDP 127.0.0.1:2225
+```
+
+### 6. DroneAppV4
+
+If rosbridge and GStreamer are running on the same computer as the application, start DroneAppV4 with:
+
+```
+cd ~/TP-zdielane-supervizne-riadenie/DroneApp_v4
+python3 DroneAppV4.py --ros-host localhost --ros-port 9090 --gst 2223 2224 2225
+```
+
+If the application runs on another computer, replace `localhost` with the IP address of the computer running rosbridge.
 
 ## Stop simulation using script
 
 Instead of manually closing all opened terminal windows, you can use the prepared stop script.
 
-### 2. Stop all simulation processes
+### Stop all processes
 
 Run the script from the root directory of the repository:
 
@@ -108,177 +232,6 @@ ros2 run swarm_mission swarm_coordinator_node --ros-args \
   -p drone_names:="['drone1','drone2','drone3']" \
   -p mission_paths:="['/home/lrs/TP-zdielane-supervizne-riadenie/ros2_ws/missions/drone1.csv','/home/lrs/TP-zdielane-supervizne-riadenie/ros2_ws/missions/drone2.csv','/home/lrs/TP-zdielane-supervizne-riadenie/ros2_ws/missions/drone3.csv']"
 ```
-
-## Manual single-drone simulation with DroneAppV4
-
-This section describes the manual test setup used for running the swarm stack with only one simulated drone and the `DroneApp_v4` visualization/control application.
-
-### 1. Build workspace
-
-Run this first, or after code changes:
-
-```
-cd ~/TP-zdielane-supervizne-riadenie/ros2_ws
-source /opt/ros/humble/setup.bash
-colcon build --symlink-install
-source install/setup.bash
-```
-
-### 2. Launch Gazebo world (Terminal 1)
-
-```
-cd ~/TP-zdielane-supervizne-riadenie
-bash runway_world.sh
-```
-
-### 3. Launch ArduPilot SITL for one drone (Terminal 2)
-
-```
-cd ~/ardupilot/ArduCopter
-sim_vehicle.py -v ArduCopter -f gazebo-iris --console -I1
-```
-
-***NOTE:** Wait until you see these messages:*
-- `EKF3 IMU0 origin set`
-- `EKF3 IMU1 origin set`
-
-### 4. Launch MAVROS for drone1 (Terminal 3)
-
-```
-cd ~/TP-zdielane-supervizne-riadenie/ros2_ws
-source /opt/ros/humble/setup.bash
-source install/setup.bash
-
-ros2 run mavros mavros_node --ros-args \
-  -r __ns:=/drone1 \
-  -p fcu_url:=udp://:14560@ \
-  -p tgt_system:=1
-```
-
-You can check the MAVROS connection with:
-
-```
-ros2 topic echo --once /drone1/state
-```
-
-The expected value is:
-
-```
-connected: true
-```
-
-### 5. Launch rosbridge websocket (Terminal 4)
-
-```
-cd ~/TP-zdielane-supervizne-riadenie/ros2_ws
-source /opt/ros/humble/setup.bash
-source install/setup.bash
-
-ros2 launch rosbridge_server rosbridge_websocket_launch.xml port:=9090
-```
-
-The expected output is:
-
-```
-Rosbridge WebSocket server started on port 9090
-```
-
-### 6. Launch swarm coordinator for one drone (Terminal 5)
-
-For single-drone testing, the coordinator must receive one drone name, one mission file and one value for each spawn offset parameter:
-
-```
-cd ~/TP-zdielane-supervizne-riadenie/ros2_ws
-source /opt/ros/humble/setup.bash
-source install/setup.bash
-
-ros2 run swarm_mission swarm_coordinator_node --ros-args \
-  -p drone_names:="['drone1']" \
-  -p mission_paths:="['/home/lrs/TP-zdielane-supervizne-riadenie/ros2_ws/missions/drone_plus.csv']" \
-  -p spawn_offset_x:="[0.0]" \
-  -p spawn_offset_y:="[0.0]" \
-  -p spawn_offset_z:="[0.0]"
-```
-
-### 7. Launch GStreamer video bridge for drone1 (Terminal 6)
-
-First check that the image topic exists:
-
-```
-cd ~/TP-zdielane-supervizne-riadenie/ros2_ws
-source /opt/ros/humble/setup.bash
-source install/setup.bash
-
-ros2 topic list | grep image_raw
-```
-
-The expected topic is:
-
-```
-/drone1/image_raw
-```
-
-Then start the GStreamer bridge:
-
-```
-ros2 run swarm_mission gstreamer_image_bridge --ros-args \
-  -p topic:=/drone1/image_raw \
-  -p host:=127.0.0.1 \
-  -p port:=2223 \
-  -p width:=640 \
-  -p height:=480 \
-  -p fps:=60
-```
-
-The expected output is:
-
-```
-GStreamer VideoWriter opened successfully
-```
-
-### 8. Launch DroneAppV4 (Terminal 7)
-
-The application connects to ROS through rosbridge. Use `localhost` if the app runs on the same computer as rosbridge:
-
-```
-cd ~/TP-zdielane-supervizne-riadenie/DroneApp_v4
-python3 DroneAppV4.py --ros-host localhost --ros-port 9090 --gst 2223 2224 2225
-```
-
-***NOTE:** The app expects three GStreamer ports when using `--gst`. For a single-drone test, only the first stream on port `2223` is required, but all three port arguments still need to be provided.*
-
-### 9. Keyboard control in DroneAppV4
-
-Click inside the application window first, so it has keyboard focus.
-
-Basic controls:
-
-- `T` - takeover / release manual control for the selected drone
-- `Q` - switch selected drone/panel
-- `W` - move forward
-- `S` - move backward
-- `A` - yaw left
-- `D` - yaw right
-- `Ctrl` - move up
-- `Space` - move down
-
-The application publishes manual-control commands through:
-
-```
-/supervisor/takeover_request
-/supervisor/release_request
-/supervisor/manual_cmd_vel
-```
-
-### 10. Stop the test
-
-Use the stop script from the repository root:
-
-```
-cd ~/TP-zdielane-supervizne-riadenie
-./stop_sim.sh
-```
-
 
 ## Links 
 https://github.com/KocurMaros/LRS-FEI/
