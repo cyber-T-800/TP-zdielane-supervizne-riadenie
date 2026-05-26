@@ -10,7 +10,7 @@ class DroneCom(QObject):
     battery_recived = pyqtSignal(int, float, float)
     state_recived = pyqtSignal(int, str)
 
-    def __init__(self, num_of_drones):
+    def __init__(self, num_of_drones, ros_host='192.168.0.190', ros_port=9090):
         super().__init__()
 
         self.num_of_drones = num_of_drones
@@ -28,7 +28,7 @@ class DroneCom(QObject):
         self.timer = QTimer()
         self.timer.timeout.connect(self.publish_cmd)
 
-        self.client = roslibpy.Ros(host='localhost', port=9090)
+        self.client = roslibpy.Ros(host=ros_host, port=ros_port)
         self.client.run()
 
         for i in range(self.num_of_drones):
@@ -97,6 +97,12 @@ class DroneCom(QObject):
             self.a_z = a_z
 
 
+    def emergency_stop(self):
+        self.null_vel()
+        if self.is_publishing:
+            self.stop_publishing()
+            self.is_publishing = False
+
     def null_vel(self):
         self.x = 0.0
         self.y = 0.0
@@ -129,5 +135,10 @@ class DroneCom(QObject):
 
     def handle_state(self, drone_id: int, mode: str):
         self.state_recived.emit(
+<<<<<<< HEAD
             drone_id, mode
         )
+=======
+            drone_id, connected, armed, guided, manual_input, mode
+        )
+>>>>>>> refs/remotes/origin/master
