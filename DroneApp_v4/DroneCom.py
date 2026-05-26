@@ -96,6 +96,12 @@ class DroneCom(QObject):
             self.a_z = a_z
 
 
+    def emergency_stop(self):
+        self.null_vel()
+        if self.is_publishing:
+            self.stop_publishing()
+            self.is_publishing = False
+
     def null_vel(self):
         self.x = 0.0
         self.y = 0.0

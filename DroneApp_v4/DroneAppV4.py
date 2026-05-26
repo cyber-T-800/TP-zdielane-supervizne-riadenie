@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import QApplication
 from DroneCom import DroneCom
 from MainWindow import MainWindow
 from GSTReceiver import GSTReceiver
+from VRInputThread import VRInputThread
 
 class DroneApp(MainWindow):
     def __init__(self, args):
@@ -47,6 +48,14 @@ class DroneApp(MainWindow):
         self.root.q_pressed.connect(self.change_right)
         self.root.motion_signal.connect(self.droneCom.update_vel)
 
+        self.vr_thread = VRInputThread()
+        self.vr_thread.toggle_control.connect(self.change_control)
+        self.vr_thread.next_drone.connect(self.change_right)
+        self.vr_thread.prev_drone.connect(self.change_left)
+        self.vr_thread.emergency_stop.connect(self.droneCom.emergency_stop)
+        self.vr_thread.motion_signal.connect(self.droneCom.update_vel)
+        self.vr_thread.start()
+
         self.show()
     
     def change_control(self):
@@ -54,6 +63,7 @@ class DroneApp(MainWindow):
         self.control_lock = self.droneCom.toggle_publishing(current_drone)
 
     def stop(self):
+        self.vr_thread.stop()
         for r in self.receivers:
             r.stop()
 
