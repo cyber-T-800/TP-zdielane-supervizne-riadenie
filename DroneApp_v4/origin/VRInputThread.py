@@ -101,7 +101,6 @@ class VRInputThread(QThread):
 
     def __init__(self):
         super().__init__()
-        print('[VR] VRInputThread vytvoreny', flush=True)
         self.running = True
         self.previous_pressed = {}
 
@@ -111,12 +110,10 @@ class VRInputThread(QThread):
         self.left_joy_y = 0.0
 
     def stop(self):
-        print('[VR] stop() zavolane', flush=True)
         self.running = False
         self.wait()
 
     def _emit_motion(self):
-        print(f'[VR] emit motion_signal: lin_x={self.right_joy_y:.2f}, lin_y={self.right_joy_x:.2f}, lin_z={self.left_joy_y:.2f}, ang_z={self.left_joy_x:.2f}', flush=True)
         self.motion_signal.emit(
             self.right_joy_y,  # lin_x  — RIGHT joystick Y
             self.right_joy_x,  # lin_y  — RIGHT joystick X
@@ -128,10 +125,8 @@ class VRInputThread(QThread):
 
     def run(self):
         try:
-            print('[VR] run() start - inicializujem OpenVR...', flush=True)
             openvr.init(openvr.VRApplication_Background)
             vr_system = openvr.VRSystem()
-            print('[VR] OpenVR inicializovane, hladam controllery...', flush=True)
             self.status_message.emit("VR input beží")
 
             while self.running:
@@ -140,12 +135,10 @@ class VRInputThread(QThread):
                 for device_index in iter_controller_indices(vr_system):
                     ok, state = vr_system.getControllerState(device_index)
                     if not ok:
-                        print(f'[VR] device {device_index}: getControllerState ok=False', flush=True)
                         continue
 
                     role_name = controller_role_name(vr_system, device_index)
                     if role_name not in ("LEFT", "RIGHT"):
-                        print(f'[VR] device {device_index}: ignorujem rolu {role_name}', flush=True)
                         continue
 
                     pressed_mask = int(state.ulButtonPressed)
@@ -158,19 +151,14 @@ class VRInputThread(QThread):
 
                         for button_name in sorted(new_set - old_set):
                             normalized = normalize_button(role_name, button_name)
-                            print(f'[VR] BUTTON DOWN: device={device_index}, role={role_name}, raw={button_name}, normalized={normalized}', flush=True)
 
                             if normalized == "A":
-                                print('[VR] emit toggle_control', flush=True)
                                 self.toggle_control.emit()
                             elif normalized == "B":
-                                print('[VR] emit next_drone', flush=True)
                                 self.next_drone.emit()
                             elif normalized == "Grip_R":
-                                print('[VR] emit prev_drone', flush=True)
                                 self.prev_drone.emit()
                             elif normalized == "Grip_L":
-                                print('[VR] emit emergency_stop', flush=True)
                                 self.emergency_stop.emit()
 
                         self.previous_pressed[device_index] = pressed_mask
@@ -183,8 +171,6 @@ class VRInputThread(QThread):
                             self.right_joy_x = new_x
                             self.right_joy_y = new_y
                             joystick_changed = True
-                            print(f'[VR] LEFT joystick changed: x={new_x:.2f}, y={new_y:.2f}', flush=True)
-                            print(f'[VR] RIGHT joystick changed: x={new_x:.2f}, y={new_y:.2f}', flush=True)
                     else:
                         if new_x != self.left_joy_x or new_y != self.left_joy_y:
                             self.left_joy_x = new_x
@@ -197,7 +183,6 @@ class VRInputThread(QThread):
                 time.sleep(POLL_SECONDS)
 
         except Exception as e:
-            print(f'[VR] CHYBA: {e}', flush=True)
             self.status_message.emit(f"VR input chyba: {e}")
 
         finally:
@@ -205,5 +190,4 @@ class VRInputThread(QThread):
                 openvr.shutdown()
             except Exception:
                 pass
-            print('[VR] VR input zastaveny', flush=True)
             self.status_message.emit("VR input zastavený")
