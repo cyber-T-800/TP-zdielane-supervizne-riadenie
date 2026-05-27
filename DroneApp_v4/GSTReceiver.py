@@ -1,10 +1,25 @@
 import gi
 import numpy as np
+import threading
 
 gi.require_version("Gst", "1.0")
+from gi.repository import Gst
 
 from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5.QtGui import QImage
+
+
+_gst_init_lock = threading.Lock()
+_gst_initialized = False
+
+
+def ensure_gstreamer_initialized():
+    global _gst_initialized
+
+    with _gst_init_lock:
+        if not _gst_initialized:
+            Gst.init(None)
+            _gst_initialized = True
 
 
 class GSTReceiver(QThread):
@@ -21,9 +36,7 @@ class GSTReceiver(QThread):
         self.appsink = None
 
     def run(self):
-        from gi.repository import Gst
-
-        Gst.init(None)
+        ensure_gstreamer_initialized()
 
         self.running = True
 

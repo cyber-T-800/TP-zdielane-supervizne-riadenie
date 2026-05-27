@@ -34,6 +34,9 @@ class DroneApp(MainWindow):
 
         for r in self.receivers:
             r.frame_received.connect(self.set_stream_image)
+            r.status_message.connect(
+                lambda drone_id, msg: print(f'[GST] drone{drone_id+1}: {msg}', flush=True)
+            )
             r.start()
 
 

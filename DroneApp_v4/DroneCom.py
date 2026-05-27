@@ -18,6 +18,9 @@ class DroneCom(QObject):
         self.num_of_drones = num_of_drones
         self.freq = 100
         self.is_publishing = False
+        self.manual_control_enabled = False
+        self.active_manual_drone = None
+        self.handover_states = [""] * self.num_of_drones
         self.null_vel()
 
         self.position_listeners = []
@@ -66,24 +69,59 @@ class DroneCom(QObject):
         print('[DroneCom] publish topics pripravene', flush=True)
 
     def toggle_publishing(self, drone_id):
-        print(f'[DroneCom] toggle_publishing(drone_id={drone_id}) predtym is_publishing={self.is_publishing}', flush=True)
+        print(
+            f'[DroneCom] toggle_publishing(drone_id={drone_id}) predtym '
+            f'is_publishing={self.is_publishing}, manual_control_enabled={self.manual_control_enabled}',
+            flush=True
+        )
 
         if not self.is_publishing:
+            self.active_manual_drone = drone_id
+            self.manual_control_enabled = False
+            self.null_vel()
+
             msg = {'data': f'drone{drone_id+1}'}
             print(f'[DroneCom] TAKEOVER publish: {msg}', flush=True)
             self.takeover.publish(roslibpy.Message(msg))
-            self.start_publishing()
             self.is_publishing = True
+            self.start_publishing()
+
+            if self.handover_states[drone_id] == 'MANUAL_CONTROL':
+                self.enable_manual_publishing(drone_id)
+            else:
+                print(
+                    f'[DroneCom] cakam na /drone{drone_id+1}/supervisor/handover_state == MANUAL_CONTROL',
+                    flush=True
+                )
         else:
-            msg = {'data': f'drone{drone_id+1}'}
+            release_drone = self.active_manual_drone if self.active_manual_drone is not None else drone_id
+            msg = {'data': f'drone{release_drone+1}'}
             print(f'[DroneCom] RELEASE publish: {msg}', flush=True)
             self.release.publish(roslibpy.Message(msg))
-            self.stop_publishing()
-            self.is_publishing = False
-            self.null_vel()
+            self.disable_manual_session()
 
-        print(f'[DroneCom] toggle_publishing koniec is_publishing={self.is_publishing}', flush=True)
+        print(
+            f'[DroneCom] toggle_publishing koniec is_publishing={self.is_publishing}, '
+            f'manual_control_enabled={self.manual_control_enabled}',
+            flush=True
+        )
         return self.is_publishing
+
+    def enable_manual_publishing(self, drone_id):
+        if self.manual_control_enabled:
+            return
+
+        self.active_manual_drone = drone_id
+        self.manual_control_enabled = True
+        self.null_vel()
+        print(f'[DroneCom] manualne publikovanie POVOLENE pre drone{drone_id+1}', flush=True)
+
+    def disable_manual_session(self):
+        self.stop_publishing()
+        self.is_publishing = False
+        self.manual_control_enabled = False
+        self.active_manual_drone = None
+        self.null_vel()
 
     def start_publishing(self):
         print(f'[DroneCom] start_publishing() timer={self.freq} ms', flush=True)
@@ -94,6 +132,9 @@ class DroneCom(QObject):
         self.timer.stop()
 
     def publish_cmd(self):
+        if not self.manual_control_enabled:
+            return
+
         msg = {
             'linear': {'x': self.x, 'y': self.y, 'z': self.z},
             'angular': {'x': self.a_x, 'y': self.a_y, 'z': self.a_z}
@@ -105,11 +146,12 @@ class DroneCom(QObject):
     def update_vel(self, x, y, z, a_x, a_y, a_z):
         print(
             f'[DroneCom] update_vel prijate: lin=({x:.2f},{y:.2f},{z:.2f}) '
-            f'ang=({a_x:.2f},{a_y:.2f},{a_z:.2f}) is_publishing={self.is_publishing}',
+            f'ang=({a_x:.2f},{a_y:.2f},{a_z:.2f}) '
+            f'is_publishing={self.is_publishing}, manual_control_enabled={self.manual_control_enabled}',
             flush=True
         )
 
-        if self.is_publishing:
+        if self.manual_control_enabled:
             self.x = x
             self.y = y
             self.z = z
@@ -117,6 +159,8 @@ class DroneCom(QObject):
             self.a_y = a_y
             self.a_z = a_z
             print('[DroneCom] update_vel ulozene pre publish_cmd', flush=True)
+        elif self.is_publishing:
+            print('[DroneCom] update_vel ignorovane, cakam na stav MANUAL_CONTROL.', flush=True)
         else:
             print('[DroneCom] update_vel ignorovane, lebo is_publishing=False. Stlac RIGHT A / toggle_control.', flush=True)
 
@@ -124,8 +168,7 @@ class DroneCom(QObject):
         print('[DroneCom] emergency_stop()', flush=True)
         self.null_vel()
         if self.is_publishing:
-            self.stop_publishing()
-            self.is_publishing = False
+            self.disable_manual_session()
         print('[DroneCom] emergency_stop koniec: rychlosti=0, is_publishing=False', flush=True)
 
     def null_vel(self):
@@ -165,5 +208,19 @@ class DroneCom(QObject):
         self.battery_recived.emit(drone_id, percentage, voltage)
 
     def handle_state(self, drone_id: int, mode: str):
+        mode = (mode or '').strip()
         print(f'[DroneCom] emit state_recived drone{drone_id+1}: mode={mode}', flush=True)
+        self.handover_states[drone_id] = mode
+
+        if self.is_publishing and self.active_manual_drone == drone_id:
+            if mode == 'MANUAL_CONTROL':
+                self.enable_manual_publishing(drone_id)
+            elif self.manual_control_enabled:
+                self.manual_control_enabled = False
+                self.null_vel()
+                print(
+                    f'[DroneCom] manualne publikovanie BLOKOVANE, stav drone{drone_id+1}={mode}',
+                    flush=True
+                )
+
         self.state_recived.emit(drone_id, mode)

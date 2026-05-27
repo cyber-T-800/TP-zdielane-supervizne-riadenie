@@ -8,6 +8,9 @@ from PyQt5.QtWidgets import (
 )
 
 
+DRONE_COLORS = ["#ff7200", "#ff0000", "#ffff00"]
+
+
 class StreamPanel(QFrame):
 
     clicked = pyqtSignal(int)     
@@ -19,12 +22,18 @@ class StreamPanel(QFrame):
 
         self.drone = "drone "+ str(drone_idx+1 )
         self.last_image = None
+        self.drone_color = DRONE_COLORS[drone_idx % len(DRONE_COLORS)]
+        self.setStyleSheet(f"StreamPanel {{ border: 4px solid {self.drone_color}; }}")
 
         self.container = QWidget(self)
 
         self.image_label = QLabel(self.container)
         self.image_label.setAlignment(Qt.AlignCenter)
-        self.image_label.setStyleSheet("background: #101010; color: #999;font-size: 24pt;" )
+        self.image_label.setStyleSheet("""
+            background: #101010;
+            color: #999;
+            font-size: 24pt;
+        """)
         self.image_label.setText("No image")
 
         
@@ -32,13 +41,12 @@ class StreamPanel(QFrame):
 
         self.drone_label = QLabel(self.drone, self.container)
 
-        self.fps_label = QLabel("-|-", self.container)
+        self.fps_label = QLabel("", self.container)
+        self.fps_label.hide()
 
         self.mode_label = QLabel("-|-", self.container)
 
         self.battery_label = QLabel("-|-", self.container)
-
-        self.battery_label_V = QLabel("-|-", self.container)
 
         style = """
         color: white;
@@ -48,11 +56,13 @@ class StreamPanel(QFrame):
         border-radius: 3px;
         """
 
-        for lbl in [self.location_label, self.fps_label, self.drone_label, self.mode_label, self.battery_label, self.battery_label_V]:
+        for lbl in [self.location_label, self.fps_label, self.drone_label, self.mode_label, self.battery_label]:
             lbl.setStyleSheet(style)
 
 
         layout = QVBoxLayout()
+        layout.setContentsMargins(4, 4, 4, 4)
+        layout.setSpacing(0)
         layout.addWidget(self.container)
         self.setLayout(layout)
 
@@ -61,19 +71,19 @@ class StreamPanel(QFrame):
         self.location_label.adjustSize()
 
     def set_battery(self, percentage, voltage):
-        self.battery_label.setText(f"bat: {percentage:.2f} %")
-        self.battery_label_V.setText(f"bat_volt: {voltage:.2f} V")
+        battery_percent = percentage * 100.0 if percentage <= 1.0 else percentage
+        self.battery_label.setText(f"Battery: {battery_percent:.1f} %")
         self.battery_label.adjustSize()
-        self.battery_label_V.adjustSize()
 
 
     def set_fps(self, fps):
         self.fps_label.setText(f"{fps} FPS")
         self.fps_label.adjustSize()
+        self.fps_label.show()
 
     def set_mode(self, mode):
 
-        self.mode_label.setText(mode)
+        self.mode_label.setText(f"Mode: {mode}")
         self.mode_label.adjustSize()
 
     def set_image(self, image):
@@ -92,10 +102,11 @@ class StreamPanel(QFrame):
         self.location_label.move(margin, margin)
 
         self.fps_label.adjustSize()
-        self.fps_label.move(
-            self.container.width() - self.fps_label.width() - margin,
-            margin
-        )
+        if self.fps_label.isVisible():
+            self.fps_label.move(
+                self.container.width() - self.fps_label.width() - margin,
+                margin
+            )
 
         self.drone_label.adjustSize()
         self.drone_label.move(
@@ -104,21 +115,16 @@ class StreamPanel(QFrame):
         )
 
         self.mode_label.adjustSize()
+        mode_y = self.container.height() - self.mode_label.height() - margin
         self.mode_label.move(
             margin,
-            self.container.height() - self.mode_label.height() - margin
+            mode_y
         )
 
         self.battery_label.adjustSize()
         self.battery_label.move(
             margin, 
-            self.container.height() - self.location_label.height() - self.battery_label.height()- margin
-        )
-
-        self.battery_label_V.adjustSize()
-        self.battery_label_V.move(
-            margin,
-            self.container.height() - self.location_label.height() - self.battery_label.height() - self.battery_label_V.height() - margin
+            mode_y - self.battery_label.height() - 6
         )
 
     def _rescale_image(self): 
