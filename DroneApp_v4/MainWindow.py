@@ -81,7 +81,7 @@ class MainWindow(QMainWindow):
 
     def set_location(self,idx, x, y, z):
         self.panels[idx].set_location(x, y, z)
-        self.map(idx, x, y)
+        self.map.update_location(idx, x, y)
     
     def set_mode(self,idx, mode):
         self.panels[idx].set_mode(mode)

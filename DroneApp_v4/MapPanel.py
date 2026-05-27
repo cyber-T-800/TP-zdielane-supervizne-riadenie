@@ -66,8 +66,8 @@ class MapPanel(QFrame):
                 painter.setBrush(self.colors[i])
 
                 painter.drawEllipse(
-                    px - radius,
-                    py - radius,
+                    int(px) - radius,
+                    int(py) - radius,
                     radius * 2,
                     radius * 2
                 )

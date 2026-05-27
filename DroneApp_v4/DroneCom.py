@@ -135,10 +135,5 @@ class DroneCom(QObject):
 
     def handle_state(self, drone_id: int, mode: str):
         self.state_recived.emit(
-<<<<<<< HEAD
             drone_id, mode
         )
-=======
-            drone_id, connected, armed, guided, manual_input, mode
-        )
->>>>>>> refs/remotes/origin/master
