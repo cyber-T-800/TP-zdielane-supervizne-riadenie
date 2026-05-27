@@ -13,11 +13,12 @@ class DroneCom(QObject):
     def __init__(self, num_of_drones, ros_host='192.168.0.190', ros_port=9090):
         super().__init__()
 
-        print(f'[DroneCom] init: num_of_drones={num_of_drones}, ros_host={ros_host}, ros_port={ros_port}', flush=True)
-
         self.num_of_drones = num_of_drones
+
         self.freq = 100
+
         self.is_publishing = False
+
         self.null_vel()
 
         self.position_listeners = []
@@ -28,9 +29,7 @@ class DroneCom(QObject):
         self.timer.timeout.connect(self.publish_cmd)
 
         self.client = roslibpy.Ros(host=ros_host, port=ros_port)
-        print('[DroneCom] pripajam sa na rosbridge...', flush=True)
         self.client.run()
-        print(f'[DroneCom] rosbridge connected={self.client.is_connected}', flush=True)
 
         for i in range(self.num_of_drones):
             pos_topic = roslibpy.Topic(
@@ -40,7 +39,6 @@ class DroneCom(QObject):
             )
             pos_topic.subscribe(partial(self._position_callback, i))
             self.position_listeners.append(pos_topic)
-            print(f'[DroneCom] subscribe: /drone{i+1}/local_position/pose', flush=True)
 
             bat_topic = roslibpy.Topic(
                 self.client,
@@ -49,7 +47,6 @@ class DroneCom(QObject):
             )
             bat_topic.subscribe(partial(self._battery_callback, i))
             self.battery_listeners.append(bat_topic)
-            print(f'[DroneCom] subscribe: /drone{i+1}/battery', flush=True)
 
             state_topic = roslibpy.Topic(
                 self.client,
@@ -58,39 +55,28 @@ class DroneCom(QObject):
             )
             state_topic.subscribe(partial(self._state_callback, i))
             self.state_listeners.append(state_topic)
-            print(f'[DroneCom] subscribe: /drone{i+1}/supervisor/handover_state', flush=True)
 
-        self.takeover = roslibpy.Topic(self.client, '/supervisor/takeover_request', 'std_msgs/String')
+        self.takeover= roslibpy.Topic(self.client,'/supervisor/takeover_request','std_msgs/String')
         self.release = roslibpy.Topic(self.client, '/supervisor/release_request', 'std_msgs/String')
-        self.cmd_vel_publisher = roslibpy.Topic(self.client, '/supervisor/manual_cmd_vel', 'geometry_msgs/Twist')
-        print('[DroneCom] publish topics pripravene', flush=True)
+        self.cmd_vel_publisher = roslibpy.Topic(self.client, '/supervisor/manual_cmd_vel','geometry_msgs/Twist')
 
     def toggle_publishing(self, drone_id):
-        print(f'[DroneCom] toggle_publishing(drone_id={drone_id}) predtym is_publishing={self.is_publishing}', flush=True)
-
         if not self.is_publishing:
-            msg = {'data': f'drone{drone_id+1}'}
-            print(f'[DroneCom] TAKEOVER publish: {msg}', flush=True)
-            self.takeover.publish(roslibpy.Message(msg))
+            self.takeover.publish(roslibpy.Message({'data': f'drone{drone_id+1}'}))
             self.start_publishing()
             self.is_publishing = True
         else:
-            msg = {'data': f'drone{drone_id+1}'}
-            print(f'[DroneCom] RELEASE publish: {msg}', flush=True)
-            self.release.publish(roslibpy.Message(msg))
+            self.release.publish(roslibpy.Message({'data': f'drone{drone_id+1}'}))
             self.stop_publishing()
             self.is_publishing = False
             self.null_vel()
 
-        print(f'[DroneCom] toggle_publishing koniec is_publishing={self.is_publishing}', flush=True)
         return self.is_publishing
 
     def start_publishing(self):
-        print(f'[DroneCom] start_publishing() timer={self.freq} ms', flush=True)
         self.timer.start(self.freq)
 
     def stop_publishing(self):
-        print('[DroneCom] stop_publishing()', flush=True)
         self.timer.stop()
 
     def publish_cmd(self):
@@ -99,16 +85,9 @@ class DroneCom(QObject):
             'angular': {'x': self.a_x, 'y': self.a_y, 'z': self.a_z}
         }
 
-        print(f'[DroneCom] publish_cmd /supervisor/manual_cmd_vel: {msg}', flush=True)
         self.cmd_vel_publisher.publish(msg)
 
     def update_vel(self, x, y, z, a_x, a_y, a_z):
-        print(
-            f'[DroneCom] update_vel prijate: lin=({x:.2f},{y:.2f},{z:.2f}) '
-            f'ang=({a_x:.2f},{a_y:.2f},{a_z:.2f}) is_publishing={self.is_publishing}',
-            flush=True
-        )
-
         if self.is_publishing:
             self.x = x
             self.y = y
@@ -116,17 +95,13 @@ class DroneCom(QObject):
             self.a_x = a_x
             self.a_y = a_y
             self.a_z = a_z
-            print('[DroneCom] update_vel ulozene pre publish_cmd', flush=True)
-        else:
-            print('[DroneCom] update_vel ignorovane, lebo is_publishing=False. Stlac RIGHT A / toggle_control.', flush=True)
+
 
     def emergency_stop(self):
-        print('[DroneCom] emergency_stop()', flush=True)
         self.null_vel()
         if self.is_publishing:
             self.stop_publishing()
             self.is_publishing = False
-        print('[DroneCom] emergency_stop koniec: rychlosti=0, is_publishing=False', flush=True)
 
     def null_vel(self):
         self.x = 0.0
@@ -137,33 +112,33 @@ class DroneCom(QObject):
         self.a_z = 0.0
 
     def _position_callback(self, drone_id, message):
-        print(f'[DroneCom] RX position drone{drone_id+1}: {message}', flush=True)
         pos = message['pose']['position']
         self.handle_position(drone_id, pos['x'], pos['y'], pos['z'])
 
     def _battery_callback(self, drone_id, message):
-        print(f'[DroneCom] RX battery drone{drone_id+1}: {message}', flush=True)
-        self.handle_battery(
-            drone_id,
-            message.get('percentage', 0.0),
-            message.get('voltage', 0.0)
-        )
+        self.handle_battery(drone_id,
+                            message.get('percentage', 0.0),
+                            message.get('voltage', 0.0))
 
     def _state_callback(self, drone_id, message):
-        print(f'[DroneCom] RX state drone{drone_id+1}: {message}', flush=True)
         self.handle_state(
             drone_id,
             message.get('data', '')
         )
 
+
     def handle_position(self, drone_id: int, x: float, y: float, z: float):
-        print(f'[DroneCom] emit position_recived drone{drone_id+1}: x={x}, y={y}, z={z}', flush=True)
         self.position_recived.emit(drone_id, x, y, z)
 
     def handle_battery(self, drone_id: int, percentage: float, voltage: float):
-        print(f'[DroneCom] emit battery_recived drone{drone_id+1}: percentage={percentage}, voltage={voltage}', flush=True)
         self.battery_recived.emit(drone_id, percentage, voltage)
 
     def handle_state(self, drone_id: int, mode: str):
-        print(f'[DroneCom] emit state_recived drone{drone_id+1}: mode={mode}', flush=True)
-        self.state_recived.emit(drone_id, mode)
+        self.state_recived.emit(
+<<<<<<< HEAD
+            drone_id, mode
+        )
+=======
+            drone_id, connected, armed, guided, manual_input, mode
+        )
+>>>>>>> refs/remotes/origin/master

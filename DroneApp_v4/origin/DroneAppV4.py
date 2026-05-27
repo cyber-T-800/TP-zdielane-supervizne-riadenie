@@ -11,7 +11,6 @@ from VRInputThread import VRInputThread
 class DroneApp(MainWindow):
     def __init__(self, args):
         super().__init__()
-        print('[APP] DroneApp sa spusta...', flush=True)
 
         self.num_of_drones = 3
         self.args = args
@@ -19,7 +18,7 @@ class DroneApp(MainWindow):
         ports = [2223,2224,2225]
 
         if self.args.ports:
-            ports = self.args.ports
+            ports = self.args.inputs
 
         self.setup_main_window(num_of_panels=self.num_of_drones)
 
@@ -37,7 +36,6 @@ class DroneApp(MainWindow):
             r.start()
 
 
-        print('[APP] Vytvaram DroneCom...', flush=True)
         self.droneCom = DroneCom(
             self.num_of_drones,
             ros_host=args.ros_host,
@@ -49,33 +47,23 @@ class DroneApp(MainWindow):
         self.droneCom.state_recived.connect(self.set_mode)
 
 
-        print('[APP] Pripajam klavesnicove a VR signaly...', flush=True)
         self.root.t_pressed.connect(self.change_control)
         self.root.q_pressed.connect(self.change_right)
         self.root.motion_signal.connect(self.droneCom.update_vel)
 
         self.vr_thread = VRInputThread()
-        self.vr_thread.status_message.connect(lambda msg: print(f'[VR_STATUS] {msg}', flush=True))
-        self.vr_thread.toggle_control.connect(lambda: print('[APP] prijaty VR signal: toggle_control', flush=True))
         self.vr_thread.toggle_control.connect(self.change_control)
-        self.vr_thread.next_drone.connect(lambda: print('[APP] prijaty VR signal: next_drone', flush=True))
         self.vr_thread.next_drone.connect(self.change_right)
-        self.vr_thread.prev_drone.connect(lambda: print('[APP] prijaty VR signal: prev_drone', flush=True))
         self.vr_thread.prev_drone.connect(self.change_left)
-        self.vr_thread.emergency_stop.connect(lambda: print('[APP] prijaty VR signal: emergency_stop', flush=True))
         self.vr_thread.emergency_stop.connect(self.droneCom.emergency_stop)
-        self.vr_thread.motion_signal.connect(lambda x,y,z,ax,ay,az: print(f'[APP] prijaty VR motion_signal: lin=({x:.2f},{y:.2f},{z:.2f}) ang=({ax:.2f},{ay:.2f},{az:.2f})', flush=True))
         self.vr_thread.motion_signal.connect(self.droneCom.update_vel)
-        print('[APP] Startujem VRInputThread...', flush=True)
         self.vr_thread.start()
 
         self.show()
     
     def change_control(self):
         current_drone = self.get_current_index()
-        print(f'[APP] change_control() zavolana, aktualny drone index={current_drone}', flush=True)
         self.control_lock = self.droneCom.toggle_publishing(current_drone)
-        print(f'[APP] control_lock/is_publishing={self.control_lock}', flush=True)
 
     def stop(self):
         self.vr_thread.stop()
