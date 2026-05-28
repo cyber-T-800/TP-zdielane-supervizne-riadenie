@@ -1,0 +1,273 @@
+\documentclass[a4paper,12pt]{article}
+
+% ------------------------------------------------------------
+% Kompatibilny LaTeX zdroj pre pdfLaTeX / Overleaf
+% Dokument pouziva iba relativne cesty k obrazkom v priecinku figures/.
+% ------------------------------------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[slovak]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, shapes.geometric}
+
+\hypersetup{colorlinks=true,linkcolor=black,urlcolor=blue,citecolor=black}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+\setlist[itemize]{topsep=2pt,itemsep=2pt}
+\setlist[enumerate]{topsep=2pt,itemsep=2pt}
+
+\lstdefinestyle{terminal}{
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    backgroundcolor=\color{gray!8},
+    columns=fullflexible
+}
+
+\newcommand{\safeimage}[4]{%
+\begin{figure}[H]
+    \centering
+    \IfFileExists{#1}{%
+        \includegraphics[width=#2\textwidth]{#1}%
+    }{%
+        \fbox{\parbox{0.88\textwidth}{\centering\vspace{1.2cm}Obrazok nebol najdeny: \texttt{#1}.\\Pre plnu kompilaciu ponechajte priecinok \texttt{figures/} pri subore \texttt{.tex}.\vspace{1.2cm}}}%
+    }
+    \caption{#3}
+    \label{#4}
+\end{figure}
+}
+
+\title{\textbf{Technická dokumentácia a používateľská príručka systému zdieľaného supervízneho riadenia autonómnej skupiny dronov vo virtuálnej realite}}
+\author{Tímový projekt -- Robotika a kybernetika}
+\date{\today}
+
+\begin{document}
+
+\begin{titlepage}
+    \centering
+    \vspace*{2.2cm}
+    {\Large Slovenská technická univerzita v Bratislave\par}
+    {\large Fakulta elektrotechniky a informatiky\par}
+    \vspace{1.7cm}
+    {\Huge\bfseries Príloha 1 - používateľská príručka\par}
+    \vspace{0.5cm}
+    {\LARGE Zdieľané supervízne riadenie autonómnej skupiny dronov vo virtuálnej realite\par}
+    \vspace{1.8cm}
+    \vfill
+    {\large \today\par}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+
+
+\section{Ǔvod}
+
+Tento dokument dopĺňa projektovú dokumentáciu o praktickú používateľskú príručku pre správne nastavenie prostredia a spustenie používateľskej aplikácie. Obsahuje zoznam potrebného hardvéru, inštalačný manuál a praktický návod na spustenie prostredia. Slúži ako stand-alone príručka, ktorú by mal vedieť užívateĺ využiť aj bez znalosti technickej dokumentácie.
+
+\section{Zoznam použitého hardvéru}
+
+Na správne fungovanie aplikácie potrebujete:
+\begin{itemize}
+    \item Počítač s operačným systémom Ubuntu verzie 22.04 na ktorom bude bežať ROS2 backendová aplikácia a v prípade simulačnej konfugurácie aj simulácia
+    \item Počítač s operačným systémom Windows na ktorom bude bežať používateľkská aplikácia a bude cez SteamVR zdieľať obrazovku s VR headsetom
+    \item VR headset Pico Neo 3
+    \item Dron Airvolute EduDrone 
+\end{itemize}
+
+
+\section{Príprava Windows prostredia}
+Windows aplikácia na svoj beh využíva \texttt{MSYS2 UCRT64}, pretože potrebuje kombináciu knižníc PyQt5, GStreamer a Python balíkov, ktoré sa v tomto prostredí inštalujú konzistentnejšie ako cez bežný systémový Python.
+
+Na Windows počítači je potrebné najskôr nainštalovať MSYS2. Po inštalácii sa spúšťa terminál \texttt{MSYS2 UCRT64}; na samotné spúšťanie aplikácie sa nepoužíva klasický Windows \texttt{cmd} ani PowerShell.
+
+\begin{enumerate}
+    \item Nainštalujte MSYS2 z oficiálnej stránky projektu: https://www.msys2.org/
+    \item Spustite \texttt{MSYS2 UCRT64}.
+    \item Aktualizujte systém balíkov:
+\end{enumerate}
+
+\begin{lstlisting}[style=terminal]
+pacman -Syu
+\end{lstlisting}
+
+Ak terminál po aktualizácii vyžiada zatvorenie, zatvorte ho, znovu otvorte \texttt{MSYS2 UCRT64} a príkaz \texttt{pacman -Syu} spustite ešte raz.
+
+\subsection{Inštalácia závislostí aplikácie}
+
+Následne v termínály nainštalujeme všetky
+\begin{lstlisting}[style=terminal]
+pacman -S --needed \
+  mingw-w64-ucrt-x86_64-python \
+  mingw-w64-ucrt-x86_64-python-pip \
+  mingw-w64-ucrt-x86_64-python-numpy \
+  mingw-w64-ucrt-x86_64-python-pyqt5 \
+  mingw-w64-ucrt-x86_64-python-gobject \
+  mingw-w64-ucrt-x86_64-python-cffi \
+  mingw-w64-ucrt-x86_64-python-cryptography \
+  mingw-w64-ucrt-x86_64-gcc \
+  mingw-w64-ucrt-x86_64-gstreamer \
+  mingw-w64-ucrt-x86_64-gst-python \
+  mingw-w64-ucrt-x86_64-gst-plugins-base \
+  mingw-w64-ucrt-x86_64-gst-plugins-good \
+  mingw-w64-ucrt-x86_64-gst-plugins-bad \
+  mingw-w64-ucrt-x86_64-gst-plugins-ugly \
+  mingw-w64-ucrt-x86_64-gst-libav
+\end{lstlisting}
+
+Následne doplňte Python balík \texttt{roslibpy}, ktorý umožňuje komunikáciu aplikácie s ROS bridge websocketom:
+
+\begin{lstlisting}[style=terminal]
+python -m pip install roslibpy --break-system-packages
+\end{lstlisting}
+
+Pre spoľahlivejšiu prevádzku v prostredí MSYS2 UCRT64 sa používa pevne určená verzia balíka \texttt{autobahn}:
+
+\begin{lstlisting}[style=terminal]
+python -m pip install --break-system-packages --force-reinstall --no-deps "autobahn==23.6.2"
+\end{lstlisting}
+
+\subsection{Povolenie video portov vo Windows firewalle}
+
+Video streamy z backendu sú prijímané cez UDP porty. Ak ich firewall blokuje, aplikácia sa môže spustiť, ale panely dronov nebudú zobrazovať obraz. PowerShell spustite ako administrátor a povoľte vstupné UDP porty:
+
+\begin{lstlisting}[style=terminal]
+New-NetFirewallRule -DisplayName "DroneApp GStreamer UDP" \
+  -Direction Inbound -Protocol UDP -LocalPort 2223-2225 -Action Allow
+\end{lstlisting}
+
+Použité porty musia byť zosúladené s konfiguráciou GStreamer streamov v ROS~2 backendu. Ak sa v projekte používajú iné porty, je potrebné upraviť aj rozsah vo firewall pravidle.
+
+\section{Spustenie backendu na Ubuntu}
+
+Pred spustením backendu je potrebné zistiť IP adresu Windows počítača, na ktorý sa majú posielať GStreamer streamy. Na Windows počítači použite príkaz:
+
+\begin{lstlisting}[style=terminal]
+ipconfig
+\end{lstlisting}
+
+Na Ubuntu počítači následne spustite projekt s parametrom \texttt{mode (sim/real)} ktorý určuje, či chceme používať simulačné, alebo reálne drony a  \texttt{--gst-host}, kde zadajte cieľovú IP adresu WINDOWS\_IP pre video streamy:
+
+\begin{lstlisting}[style=terminal]
+cd ~/TP-zdielane-supervizne-riadenie
+./start_swarm.sh  --mode [sim, real] --gst-host WINDOWS_IP 
+\end{lstlisting}
+
+Ďalšie nepovinné parametre sú:
+\begin{itemize}
+    \item --build - automaticky vykoná colcon build
+    \item --drones (1,2,3) - počet dronov, ktoré chceme ovládať
+    \item --drone1-fcu - porty jednotlivých dronov (keď sa líšia od preddefinovaných)
+\end{itemize}
+Príklady:
+
+\begin{lstlisting}[style=terminal]
+./start_swarm.sh --build --mode sim --drones 3
+./start_swarm.sh --mode sim --drones 1
+./start_swarm.sh --build --mode real --drones 1 --drone1-fcu "/dev/ttyACM0:57600"
+./start_swarm.sh --mode real --drones 1 --drone1-fcu "udp://:14550@"
+\end{lstlisting}
+
+Po spustení backendu by mali bežať ROS2 nody, rosbridge websocket, logika misií a odosielanie GStream video streamov smerom na Windows počítač.
+
+\section{Spustenie aplikácie DroneApp na Windows}
+
+V termináli \texttt{MSYS2 UCRT64} prejdite do adresára aplikácie \texttt{DroneApp}. Cestu je potrebné upraviť podľa reálneho umiestnenia repozitára na počítači:
+
+\begin{lstlisting}[style=terminal]
+cd /c/Users/marek/Documents/2.semester/Timovy\ projekt/TP-zdielane-supervizne-riadenie/DroneApp
+\end{lstlisting}
+
+Aplikácia sa spúšťa s parametrom \texttt{--ros-host}, ktorý určuje IP adresu Ubuntu počítača, kde beží rosbridge:
+
+\begin{lstlisting}[style=terminal]
+python DroneApp.py --ros-host UBUNTU_IP
+\end{lstlisting}
+
+Príklad:
+
+\begin{lstlisting}[style=terminal]
+python DroneApp.py --ros-host 192.168.0.190
+\end{lstlisting}
+
+Po spustení by sa malo zobraziť okno \ref{fig:sim-pic}. V ňom sú panely jednotlivých dronov, telemetrické údaje, stav pripojenia, batéria a video obraz.
+
+\safeimage{img/sim-pic.png}{0.92}{Ukážka zo spustenej aplikácie}{fig:sim-pic}
+
+
+\subsection{Základná kontrola po spustení}
+
+Po spustení systému odporúčame vykonať kontrola, že Windows počítač vidí rosbridge na Ubuntu:
+
+\begin{lstlisting}[style=terminal]
+Test-NetConnection UBUNTU_IP -Port 9090
+\end{lstlisting}
+
+
+\section{Pripojenie na VR rozhranie}
+
+Na pripojenie na VR rozhranie použijete Windows počítač. Potrebujete mať na ňom nainštalované: 
+
+\begin{itemize}
+    \item Steam so SteamVR
+    \item ALVR launcher - stihneme z oficiálneho Githubu: https://github.com/alvr-org/ALVR/releases/tag/v20.14.1 a nainštalujeme
+\end{itemize}
+
+Pre pripojenie je potebné mať obidva zariadenia pripojené na rovnakej sieti. 
+
+Na VR aplikácii si medzi aplikáciami nájdete ALVR client a ten spustíte, v heasete sa vám objavia údaje na zariadenia.  
+
+Následne spustíme Steam a ALVR laucher 
+V ALVR launcher cez možnosť Trusted Wireless Devices -> Add device manually pridáte podľa parametrov z headsetu pripojenie. 
+
+Po pridaní a spustení cez Launch Stream VR sa vám v headsete zobrazí stream z obrazovky počítača a aplikácia, ktorú je možné ovládať cez controllery VR zariadenia. 
+
+\section{Ovládanie aplikácie}
+
+Systém využíva VR ovládače s nasledujúcou konfiguráciou vstupov:
+
+\begin{itemize}
+    \item \textbf{Pravý ovládač}
+    \begin{itemize}
+        \item Joystick os Y -- pohyb dopredu/dozadu (\texttt{lin\_x})
+        \item Joystick os X -- pohyb vľavo/vpravo (\texttt{lin\_y})
+        \item Tlačidlo A -- prevzatie alebo uvoľnenie riadenia aktuálne zvoleného drona
+        \item Tlačidlo B -- prepnutie na nasledujúci dron
+        \item Grip tlačidlo -- prepnutie na predchádzajúci dron
+    \end{itemize}
+
+    \item \textbf{Ľavý ovládač}
+    \begin{itemize}
+        \item Joystick os Y -- pohyb hore/dole (\texttt{lin\_z})
+        \item Joystick os X -- rotácia drona okolo osi Z -- yaw (\texttt{ang\_z})
+        \item Grip tlačidlo -- núdzové zastavenie drona
+    \end{itemize}
+\end{itemize}
+
+Na elimináciu nechcených pohybov joystickov je použitá mŕtva zóna (\textit{deadzone}) s hodnotou 0.20.
+
+\section{Ukončenie aplikácie}
+Pri ukončení testu najskôr ukončite manuálny režim, ak je aktívny, a až potom zatvorte desktopovú aplikáciu. Backend na Ubuntu ukončite pomocou skriptu: 
+
+\begin{lstlisting}[style=terminal]
+cd ~/TP-zdielane-supervizne-riadenie
+./stop_swarm.sh
+\end{lstlisting}
+
+
+\end{document}
