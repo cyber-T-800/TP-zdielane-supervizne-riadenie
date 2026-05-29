@@ -147,7 +147,7 @@ Aplikácia zároveň zabezpečuje príjem video streamov prostredníctvom GStrea
 Táto komunikačná vrstva slúži na odber telemetrických údajov a odosielanie riadiacich požiadaviek medzi používateľským rozhraním a autonómnym systémom. 
 Súčasťou aplikácie je aj modul mapujúci vstupy z klávesnice na rýchlostné príkazy, ktoré umožňujú operátorovi plynulé manuálne ovládanie drona počas letu.
 
-\safeimage{img/testovanie_vr.png}{0.8}{Zobrazenie viacerých dronov v aplikácii prenášanej do VR prostredia.}{fig:testovanie-vr}
+\safeimage{img/sim-pic.png}{0.8}{Zobrazenie viacerých dronov v aplikácii prenášanej do VR prostredia.}{fig:sim-pic}
 
 \subsection{Pracovný priestor \texttt{ros2\_ws}}
 
@@ -276,6 +276,20 @@ Príkladom mapovanie streamov je:
 \end{table}
 
 
+\section{Testovacie spustenie}
+
+Na otestovanie fungovania aplikácie sme spustili aplikáciu podľa Používateľskej príručky (Príloha 1). Spustili sme simulačné prostredie na Linux počítači, frontend aplikáciu na Windows počítači a cez ALVR + SteamVR sme sa pripojili na VR headset. 
+
+
+Na obrázku \ref{fig:backend} potom môžeme viedieť Gazebo simuláciu s simulačným svetom a terminály na ktorých beží simulácia a backendová aplikácia. 
+
+\safeimage{img/backend.png}{0.8}{Backend na Linux počítači.}{fig:backend}
+
+Na obrázkoch \ref{fig:sim-pic1} a \ref{fig:sim-pic2} zase môžeme vidieť frontendovú aplikáciu bežiacu na Windows počítačí v rôznych časových okamihoch. 
+
+\safeimage{img/sim-pic.png}{0.6}{Frontendová aplikácia.}{fig:sim-pic1}
+
+\safeimage{img/sim-pic2.png}{0.6}{Frontendová aplikácía po uplynutí istého času.}{fig:sim-pic2}
 
 \section{Záver}
 
