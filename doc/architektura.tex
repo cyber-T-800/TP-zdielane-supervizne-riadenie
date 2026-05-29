@@ -28,7 +28,7 @@ Tento dokument slúži ako časť technickej dokumentácie pre projekt Zdieľan�
 
 Obsahuje popis architektúry systému, využité technológie a použité topiky v rámci ROS2. 
 
-Je určený pre vývojárov, ktorý budú vyvýjať a rozvýjať systému. 
+Je určený pre vývojárov, ktorý budú vyvíjať a rozvíjať systému. 
 
 Neobsahuje detailné informácie o implementácii jednotlivých komponentov, ale poskytuje prehľad o štruktúre a komponentoch systému.
 
@@ -49,24 +49,23 @@ Vyzuálne architektúra systému je znázornená na obrázku \ref{fig:architektu
 \label{fig:architektura}
 \end{figure}
 
-Systém sa skladáz z 2 aplikácií, ktoré zabezpečujú obojsmernú komunikáciu medzi dronmi a virtuálnou realitou.
+Systém sa skladá z 2 aplikácií, ktoré zabezpečujú obojsmernú komunikáciu medzi dronmi a virtuálnou realitou.
 
-Prvou je backendová aplikácia bežica na ROS2, ktorá zabezpečuje kominikáciu s dronmi a automatické riadenie dronov 
-po predefinovaných trajektóriach. Takiež zabezpečuje bezpečnosť pri riadené dronov, vyhnutie sa kolíziám a 
-pri simulačnom prostredí aj konverziu videa
-videa do GStreameru (reálny dron streamuje priamo cez GStreamer), ktorý následne posiela video do frontendovej aplikácie.
+Prvou je backendová aplikácia bežiaca na ROS2, ktorá zabezpečuje komunikáciu s dronmi a automatické riadenie dronov 
+po preddefinovaných trajektóriách. Takiež zabezpečuje bezpečnosť pri riadené dronov, vyhnutie sa kolíziám a 
+pri simulačnom prostredí aj konverziu videa do GStreameru (reálny dron streamuje priamo cez GStreamer), ktorý následne posiela video do frontendovej aplikácie.
 
 Frontendová aplikácia využíva sa pripája na backendovú aplikáciu pomocou ROS2 bridge cez WebSoket, čo je technológia, ktorá umožnuje prepájať ROS a ne-ROS aplikácie a GStreameru
 a zabezpečuje zobrazenie dronov a možnosť ovládania dronov. Na zobrazenie vo virtuálnej realite používa
-SteamVR a OpenVR, ktoré zabezpečujú prenos kontentu z obrazovky počítača do VR headsetu a umožnujú spracovať 
-používateľské vstupy z VR ovládačov.
+SteamVR a OpenVR, ktoré zabezpečujú prenos kontentu z obrazovky počítača do VR headsetu a umožňuje spracovať 
+užívateľské vstupy z VR ovládačov.
 
 \newpage
-\section{Komunikácia medzi komponentami}
+\section{Komunikácia medzi komponentmi}
 
 \subsection{Dron a backendová aplikácia}
 
-Drony komunikujú s backendovou aplikáciou pomocou ROS topikov/servisov a v prípade reálneho drono zdieľanie videa prebieha pomocou GStreameru.
+Drony komunikujú s backendovou aplikáciou pomocou ROS topikov/servisov a v prípade reálneho dronu zdieľanie videa prebieha pomocou GStreameru.
 
 \subsubsection*{Backend sa pripája na topiky:}
 
@@ -98,7 +97,7 @@ Backendová a frontendová aplikácia spolu komunikujú cez rozhranie ROS2 bridg
 ktoré umožňuje prenos správ a dát medzi ROS2 aplikáciami a aplikáciami nevyužívajúcimi ROS2.
 Tento spôsob sme zvolili z dôvodu vyššej portability aplikácie, bez nutnosti implementovať ROS2 klienta priamo vo VR aplikácii.
 
-\subsubsection*{Front end sa prípája na topiky (pre každý dron zlášť):}
+\subsubsection*{Front end sa pripája na topiky (pre každý dron zlášť):}
 
 \begin{itemize}
     \item \textbf{/droneX/local\_position/pose} - geometry\_msgs/msg/PoseStamped - aktuálna pozícia robota
@@ -128,3 +127,4 @@ Frontendová aplikácia využíva SteamVR na komunikáciu s VR headsetom, ktoré
 a OpenVR na čítanie vstupov z VR ovládačov, ktoré vieme následne v aplikácii spracovať a ovládať tak drona. 
 
 \end{document}
+
