@@ -84,9 +84,9 @@
 
 Tento dokument popisuje systém zdieľaného supervízneho riadenia autonómnej skupiny dronov vo virtuálnej realite. 
 
-Cieľom dokumentu je zrozumiteľne popísať architektúru riešenia, úlohu jednotlivých softvérových komponentov, komunikačné rozhrania, princíp handover mechanizmu medzi autonómnym a manuálnym režimom.
+Cieľom dokumentu je zrozumiteľne popísať architektúru riešenia, úlohu jednotlivých softvérových a hardvérových komponentov, komunikačné rozhrania, princíp handover mechanizmu medzi autonómnym a manuálnym režimom.
 
-Je určený pre developerov, ktorý budú systém rozvýjať, nie pre užívateĺovov, pre nich je určená samostatná používateľská príručka.
+Je určený pre developerov, ktorý budú systém rozvíjať, nie pre užívateĺovov, pre nich je určená samostatná používateľská príručka.
 
 \section{Základná koncepcia systému}
 
@@ -95,10 +95,14 @@ Zabezpečuje ich autonómne riadenie po preddefinovaných trasách, plynulý pre
 
 Všetky tieto funkcie zabezpečuje skrze spoločnú sieť s minimálnou latenciou.
 
+Systém je rozdelený do viacerých komponentov, frontendovej používateľskej aplikácie, ktorá beží na počítači operátora a operátor je schopný pomocou nej sledovať a ovládať jednotlivé drony skrze backendovú aplikáciu.  
+Backendová aplikácie je linuxový ROS2 server, ktorý priamo komunikuje s dromni, prípadne simuláciou. Je schopný fungovať samostatne, kde zabezpečuje auitomatizované misie a bezpečný pohyb dronov. 
+Po pripojení front end aplikácie vysiela údaje o dronoch, prjíma riadiace topiky a v prípade simulácie takisto konvertuje video z ROS2 topiku na  GStreamer stream. 
+
 \newpage
 \section{Architektúra systému}
 
-Vizuálne architektúra systému je znázornená na obrázku \ref{fig:architektura}:
+Architektúra systému je znázornená na obrázku \ref{fig:architektura}:
 
 \begin{figure}[h!]
 \centering
@@ -118,30 +122,48 @@ a zabezpečuje zobrazenie dronov a možnosť ovládania dronov. Na zobrazenie vo
 SteamVR a OpenVR, ktoré zabezpečujú prenos kontentu z obrazovky počítača do VR headsetu a umožňuje spracovať 
 užívateľské vstupy z VR ovládačov.
 
-\newpage
-\section{Komponenty systému}
 
-Systém je rozdelený na dve hlavné časti. Prvú časť tvorí frontendová aplikácia \texttt{DroneApp}, ktorá zabezpečuje používateľské rozhranie pre operátora. Druhú časť predstavuje backendová aplikácia \texttt{ros2\_ws}, v ktorom prebieha autonómne riadenie misie, koordinácia viacerých dronov a komunikácia s letovými jednotkami prostredníctvom MAVROS.
+\subsection{Harvérové komponenty}
+
+Systém je navrhnutý tak, aby bol podľa kompability rozdelený do viacerých harvérových komponentov. 
+
+Z dôvodu lepšej optimalizácie ROS2 pre ubuntu linux sa na beh backendovej aplikácie používa Linux počítať s Ubuntu 22.04. 
+
+Na beh frontendovej aplikácie používate Windows počítač, pretože StreamVR je menej stabilný na Linux prostredí. 
+
+Ako ďaľšie harvérové komponenty využívame Airvolute EduDrone a Pico Neo 3 VR headset s ovládačmi.
+
 
 \subsection{Desktopová aplikácia \texttt{DroneApp}}
 
-Adresár \texttt{DroneApp} obsahuje používateľskú aplikáciu implementovanú v jazyku Python s využitím frameworku PyQt5. Aplikácia slúži na monitorovanie viacerých dronov v reálnom čase a zároveň umožňuje operátorovi prevziať manuálne riadenie vybraného drona.
+Adresár \texttt{DroneApp} obsahuje používateľskú aplikáciu implementovanú v jazyku Python s využitím frameworku PyQt5. 
+Aplikácia slúži na monitorovanie viacerých dronov v reálnom čase a zároveň umožňuje operátorovi prevziať manuálne riadenie vybraného drona.
 
-Grafické rozhranie pozostáva z viacerých panelov, pričom každý panel reprezentuje jeden dron. Panel zobrazuje video stream z kamery drona spolu s telemetrickými údajmi, ako sú GPS súradnice, stav batérie, aktuálny letový režim alebo názov zariadenia. Operátor môže medzi panelmi prepínať a zvoliť aktívny dron, na ktorý sa následne aplikujú príkazy manuálneho riadenia.
+Grafické rozhranie pozostáva z viacerých panelov, pričom každý panel reprezentuje jeden dron. Panel zobrazuje video stream z kamery drona spolu s telemetrickými údajmi, 
+ako sú súradnice (optitrack/GPS), stav batérie, aktuálny letový režim . Operátor môže medzi panelmi prepínať a zvoliť aktívny dron, 
+na ktorý sa následne aplikujú príkazy manuálneho riadenia.
 
-Aplikácia zároveň zabezpečuje príjem video streamov prostredníctvom GStreamer pipeline a komunikáciu s ROS2 prostredím cez knižnicu \texttt{roslibpy}. Táto komunikačná vrstva slúži na odber telemetrických údajov a odosielanie riadiacich požiadaviek medzi používateľským rozhraním a autonómnym systémom. Súčasťou aplikácie je aj modul mapujúci vstupy z klávesnice na rýchlostné príkazy, ktoré umožňujú operátorovi plynulé manuálne ovládanie drona počas letu.
+Aplikácia zároveň zabezpečuje príjem video streamov prostredníctvom GStreamer pipeline a komunikáciu s ROS2 prostredím cez knižnicu \texttt{roslibpy}. 
+Táto komunikačná vrstva slúži na odber telemetrických údajov a odosielanie riadiacich požiadaviek medzi používateľským rozhraním a autonómnym systémom. 
+Súčasťou aplikácie je aj modul mapujúci vstupy z klávesnice na rýchlostné príkazy, ktoré umožňujú operátorovi plynulé manuálne ovládanie drona počas letu.
 
-\safeimage{img/testovanie_vr.png}{0.98}{Testovanie monitorovania viacerých dronov v aplikácii prenášanej do VR prostredia.}{fig:testovanie-vr}
+\safeimage{img/testovanie_vr.png}{0.8}{Zobrazenie viacerých dronov v aplikácii prenášanej do VR prostredia.}{fig:testovanie-vr}
 
 \subsection{Pracovný priestor \texttt{ros2\_ws}}
 
 Adresár \texttt{ros2\_ws} predstavuje ROS2 pracovný priestor obsahujúci aplikáciu zodpovednú za autonómne riadenie misie, koordináciu roja dronov a komunikáciu s VR kontrolérmi.
 
-Kľúčovou časťou systému je balík \texttt{swarm\_mission}, ktorý zabezpečuje riadenie viacdronového scenára. Tento balík realizuje načítanie misijných bodov, koordináciu jednotlivých dronov a správu ich stavov počas letu. Každý dron komunikuje cez vlastný MAVROS namespace, čo umožňuje paralelnú správu viacerých zariadení v jednom systéme.
+Kľúčovou časťou systému je balík \texttt{swarm\_mission}, ktorý zabezpečuje riadenie viacdronového scenára. 
+Tento balík realizuje načítanie misijných bodov, koordináciu jednotlivých dronov a správu ich stavov počas letu. 
+Každý dron komunikuje cez vlastný MAVROS namespace, čo umožňuje paralelnú správu viacerých zariadení v jednom systéme.
 
-Koordinačný uzol zároveň implementuje mechanizmus prepínania medzi autonómnym a manuálnym režimom riadenia. Operátor môže počas misie prevziať kontrolu nad konkrétnym dronom, pričom systém zabezpečí korektné odovzdanie riadenia bez prerušenia ostatných autonómnych procesov. Po ukončení manuálneho zásahu môže byť dron opätovne zaradený do autonómneho režimu a pokračovať v plnení misie.
+Koordinačný uzol zároveň implementuje mechanizmus prepínania medzi autonómnym a manuálnym režimom riadenia. 
+Operátor môže počas misie prevziať kontrolu nad konkrétnym dronom, pričom systém zabezpečí korektné odovzdanie riadenia bez prerušenia ostatných autonómnych procesov. 
+Po ukončení manuálneho zásahu môže byť dron opätovne zaradený do autonómneho režimu a pokračovať v plnení misie.
 
-Súčasťou pracovného priestoru je aj modul zabezpečujúci prevod ROS2 obrazových tém na GStreamer video streamy. Tie sú následne prenášané do desktopovej aplikácie, kde ich operátor sleduje v reálnom čase. Architektúra systému je navrhnutá modulárne, čo umožňuje jednoduché rozšírenie o ďalšie drony, nové typy misií alebo doplnkové senzory.
+Súčasťou pracovného priestoru je aj modul zabezpečujúci prevod ROS2 kamera topikov zo simulácie na GStreamer video streamy. 
+Tie sú následne prenášané do desktopovej aplikácie, kde ich operátor sleduje v reálnom čase. 
+Architektúra systému je navrhnutá modulárne, čo umožňuje jednoduché rozšírenie o ďalšie drony, nové typy misií alebo doplnkové senzory.
 
 
 \newpage
@@ -157,6 +179,7 @@ Drony komunikujú s backendovou aplikáciou pomocou ROS topikov/servisov a v pr�
     \item \textbf{/droneX/stop} - std\_msgs/msg/Bool - požiadavka na zastavenie misie a pristátie po dokončení aktuálneho cyklu
     \item \textbf{/droneX/state} - mavros\_msgs/msg/State - aktuálny stav dronu (stav pripojenia, mód letu, armed stav)
     \item \textbf{/droneX/local\_position/pose} - geometry\_msgs/msg/PoseStamped - aktuálna lokálna pozícia dronu
+    \item \textbf{/droneX/image\_raw} - sensor\_msgs/msg/Image - obraz z kamery zo simulácie, konvertuje na GStreamer stream
 \end{itemize}
 
 \subsubsection*{Ďalej publikuje topiky, na ktoré sa dron pripája:}
@@ -205,7 +228,7 @@ Video je stremované pomocou GStreamer-u.
 
 Frontendová aplikácia využíva SteamVR na komunikáciu s VR headsetom, ktoré zabezpečuje prenos obrazu z počítača
 a OpenVR na čítanie vstupov z VR ovládačov, ktoré vieme následne v aplikácii spracovať a ovládať tak drona. 
-
+Pre správne fungovanie Stremu, využívame open source projekt ALVR nainštalovaný ako server na PC a ako klient na VR headsete, keďže Pico Neo 3 nemá natívnu podporu SteamVR. 
 
 \newpage
 \section{Misie a pracovný tok}
@@ -224,27 +247,11 @@ Podporovaný koncept misie zahŕňa:
 
 \section{Handover mechanizmus}
 
-Handover mechanizmus je kľúčovou časťou systému. Zabezpečuje, aby operátor mohol bezpečne prevziať manuálne riadenie jedného vybraného drona bez ovplyvnenia ostatných autonómnych dronov.
+Handover mechanizmus je kľúčovou časťou systému. Zabezpečuje, aby operátor mohol bezpečne prevziať manuálne riadenie jedného vybraného drona bez narušenia stability systému a ovplyvnenia ostatných autonómnych dronov.
 
-\begin{figure}[H]
-    \centering
-    \begin{tikzpicture}[
-        state/.style={draw, rounded corners, fill=blue!9, minimum width=3.4cm, minimum height=0.9cm, align=center},
-        arrow/.style={-{Latex[length=3mm]}, thick},
-        node distance=1.15cm
-    ]
-    \node[state] (auto) {AUTO\_MISSION};
-    \node[state, right=of auto] (hold) {HOLD\_FOR\_HANDOVER};
-    \node[state, right=of hold] (manual) {MANUAL\_CONTROL};
-    \node[state, below=of manual] (return) {RETURN\_TO\_MISSION};
-    \draw[arrow] (auto) -- node[above]{takeover} (hold);
-    \draw[arrow] (hold) -- node[above]{stabilizácia} (manual);
-    \draw[arrow] (manual) -- node[right]{release} (return);
-    \draw[arrow] (return) -| node[below]{obnovenie misie} (auto);
-    \end{tikzpicture}
-    \caption{Zjednodušený stavový automat handover mechanizmu}
-    \label{fig:handover}
-\end{figure}
+
+\safeimage{img/handover.png}{0.8}{Zjednodušený stavový automat handover mechanizmu}{fig:handover}
+
 
 V autonómnom režime dron sleduje waypointy z misijného súboru. Po prijatí požiadavky \texttt{takeover} sa vybraný dron presunie do stabilizačného stavu \texttt{HOLD\_FOR\_HANDOVER}. Po stabilizácii sa aktivuje \texttt{MANUAL\_CONTROL}, v ktorom sú príkazy z operátora smerované iba na daný dron. Po požiadavke \texttt{release} sa rýchlostný príkaz vynuluje a dron sa vráti do autonómneho režimu.
 
@@ -268,105 +275,7 @@ Príkladom mapovanie streamov je:
     \caption{Príklad mapovania video streamov}
 \end{table}
 
-\section{Používateľské ovládanie}
 
-Desktopové rozhranie je určené na testovanie a monitorovanie. Operátor môže prepínať aktívny dron, sledovať jeho stav a v manuálnom režime generovať rýchlostné príkazy. Vstupy z klávesnice alebo VR ovládačov sú mapované na správu \texttt{geometry\_msgs/msg/Twist}.
-
-\begin{table}[H]
-    \centering
-    \begin{tabular}{cl}
-        \toprule
-        Vstup & Funkcia \\
-        \midrule
-        W/S & pohyb dopredu alebo dozadu \\
-        A/D & rotácia doľava alebo doprava \\
-        Ctrl/Space & pohyb nahor alebo nadol \\
-        T & prevzatie alebo uvoľnenie manuálneho režimu \\
-        Q & prepnutie aktívneho panelu drona \\
-        \bottomrule
-    \end{tabular}
-    \caption{Základné mapovanie používateľských vstupov}
-\end{table}
-
-\section{Bezpečnostné princípy}
-
-Návrh systému obsahuje viacero bezpečnostných pravidiel:
-
-\begin{itemize}
-    \item v manuálnom režime môže byť súčasne iba jeden dron,
-    \item manuálne príkazy sa odosielajú iba aktívnemu dronu,
-    \item pri strate aktuálnych manuálnych príkazov sa používa nulová rýchlosť,
-    \item pred manuálnym riadením sa dron stabilizuje,
-    \item pri návrate do autonómnej misie sa vynuluje posledný manuálny príkaz,
-    \item ostatné drony pokračujú v autonómnej misii bez zmeny režimu.
-\end{itemize}
-
-Tieto pravidlá znižujú riziko, že by posledný manuálny príkaz zostal aktívny po výpadku ovládania alebo že by operátor neúmyselne ovplyvnil nesprávny dron.
-
-\section{Spustenie a testovanie}
-
-\subsection{Spustenie ROS2 časti}
-
-ROS2 pracovný priestor sa zostaví a načíta štandardným postupom:
-
-\begin{lstlisting}[style=terminal]
-cd ~/TP-zdielane-supervizne-riadenie/ros2\_ws
-source /opt/ros/humble/setup.bash
-colcon build
-source install/setup.bash
-\end{lstlisting}
-
-Koordinátor roja sa spúšťa z balíka \texttt{swarm\_mission}. Pri spustení je potrebné odovzdať názvy dronov a cesty k misijným súborom z pracovného priestoru.
-
-\subsection{Spustenie desktopovej aplikácie}
-
-\begin{lstlisting}[style=terminal]
-cd ~/TP-zdielane-supervizne-riadenie/DroneApp
-python3 DroneAppV4.py
-\end{lstlisting}
-
-Aplikácia očakáva dostupný rosbridge websocket a aktívne GStreamer streamy na príslušných UDP portoch.
-
-\subsection{Test handover mechanizmu}
-
-Prevzatie manuálneho riadenia vybraného drona možno otestovať publikovaním požiadavky do supervíznej témy:
-
-\begin{lstlisting}[style=terminal]
-ros2 topic pub --once /supervisor/takeover_request \
-  std_msgs/msg/String "{data: 'drone2'}"
-\end{lstlisting}
-
-Manuálny rýchlostný príkaz počas prevzatia:
-
-\begin{lstlisting}[style=terminal]
-ros2 topic pub -r 10 /supervisor/manual_cmd_vel \
-  geometry_msgs/msg/Twist \
-  "{linear: {x: 0.4, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.2}}"
-\end{lstlisting}
-
-Uvoľnenie manuálneho režimu:
-
-\begin{lstlisting}[style=terminal]
-ros2 topic pub --once /supervisor/release_request \
-  std_msgs/msg/String "{data: 'drone2'}"
-\end{lstlisting}
-
-\section{Experimentálne overenie}
-
-Experimentálne overenie pozostáva z monitorovania viacerých dronov, sledovania telemetrie, prenosu video streamu a skúšky manuálneho zásahu. Priložená testovacia fotografia ukazuje stav, v ktorom aplikácia zobrazuje tri drony s telemetriou, stavom pripojenia a obrazom zo simulačného prostredia. Takýto výstup je vhodný na prenos do VR zariadenia, kde operátor získava prehľad o skupine dronov.
-
-Pri overovaní je vhodné sledovať najmä:
-
-\begin{itemize}
-    \item či sú prijímané všetky video streamy,
-    \item či sa správne aktualizuje poloha a batéria,
-    \item či sa požiadavka na prevzatie prejaví iba na vybranom drone,
-    \item či manuálny príkaz neovplyvní ostatné drony,
-    \item či sa po uvoľnení režimu dron vráti do autonómnej misie.
-\end{itemize}
-
-
-\newpage
 
 \section{Záver}
 
